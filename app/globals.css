@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-playfair: "Playfair Display", Georgia, serif;
+    --font-source: "Source Sans 3", system-ui, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchored sections clear the fixed navbar instead of hiding beneath it */
+    scroll-padding-top: 6rem;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-forest font-sans;
+    font-feature-settings: "kern";
+  }
+
+  ::selection {
+    background: rgba(140, 154, 132, 0.25); /* sage */
+  }
+
+  /* Soft sage focus, never a harsh blue ring */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #f9f8f4, 0 0 0 4px #8c9a84;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Pill buttons — the botanical signature */
+  .btn {
+    @apply inline-flex h-12 items-center justify-center rounded-full px-7
+           text-sm font-medium uppercase tracking-widest
+           transition-all duration-300 ease-botanical;
+  }
+  .btn-primary {
+    @apply btn bg-forest text-background hover:bg-terracotta;
+  }
+  .btn-secondary {
+    @apply btn border border-sage bg-transparent text-sage hover:bg-sage/10;
+  }
+
+  /* Underlined, calm inputs */
+  .field {
+    @apply w-full border-0 border-b border-stone bg-transparent px-1 py-3
+           text-forest placeholder:text-forest/35
+           transition-colors duration-300 focus:border-sage;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-widest text-sage;
+  }
+}
+
+@layer utilities {
+  /* Classic Roman arch for imagery */
+  .arch {
+    border-top-left-radius: 200px;
+    border-top-right-radius: 200px;
+  }
+  /* Scroll-reveal helpers driven by IntersectionObserver (see Reveal.tsx).
+     A per-element --reveal-delay lets grouped children stagger in. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Staggered children: fade + rise once an ancestor .reveal turns .is-visible.
+     Each child sets its own --reveal-delay for a natural, cascading entrance. */
+  .rise {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .is-visible .rise {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reveal opt-out: show immediately on mobile instead of hiding until scrolled
+   into view (avoids an empty gap below stacked sections on small screens). */
+@media (max-width: 767px) {
+  .reveal-static-mobile,
+  .reveal-static-mobile .rise {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  /* Honor reduced-motion: no ambient loops, no travel — just present the content */
+  .animate-drift,
+  .animate-pulse-soft,
+  .animate-float-particle,
+  .animate-bob,
+  .animate-sway,
+  .animate-float-up,
+  .animate-pop,
+  .animate-grow-x,
+  .animate-deplete,
+  .animate-spin {
+    animation: none !important;
+  }
+  .reveal,
+  .rise {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

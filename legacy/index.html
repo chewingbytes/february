@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>February — A slow-paced matching engine</title>
+  <meta name="description" content="February. A slow-paced matching engine for subcultures and shared values. By invitation only." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream:    '#FBF9F6',
+            slate:    '#1E2229',
+            amethyst: '#9966CC',
+          },
+          fontFamily: {
+            serif:  ['"Playfair Display"', 'Georgia', 'serif'],
+            script: ['"Great Vibes"', 'cursive'],
+            sans:   ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html, body { height: 100%; }
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+    /* ── SVG node typography (enlarged) ── */
+    .n-root    { font: 600 12px Inter, sans-serif; letter-spacing: .22em; fill: #9966CC; text-transform: uppercase; }
+    .n-primary { font: 600 14px Inter, sans-serif; letter-spacing: .005em; fill: #1E2229; fill-opacity: .92; }
+    .n-leaf    { font: 500 13px Inter, sans-serif; letter-spacing: .005em; fill: #1E2229; fill-opacity: .62; }
+    .n-share   { font: 600 14px Inter, sans-serif; letter-spacing: .005em; fill: #7E4FB8; }
+    .n-match   { font: 600 13px Inter, sans-serif; letter-spacing: .01em; fill: #FFFFFF; }
+
+    /* thicker stems */
+    .link        { stroke: #9966CC; stroke-opacity: .34; stroke-width: 1.9; fill: none; }
+    .link-match  { stroke: #9966CC; stroke-opacity: .7;  stroke-width: 1.7; fill: none; stroke-dasharray: 4 5; }
+
+    .box       { fill: #FBF9F6; stroke: #1E2229; stroke-opacity: .15; }
+    .box-prim  { fill: #FBF9F6; stroke: #9966CC; stroke-opacity: .35; }
+    .box-root  { fill: #FBF9F6; stroke: #9966CC; stroke-opacity: .65; }
+    .box-share { fill: #9966CC12; stroke: #9966CC; stroke-opacity: .55; }
+    .box-match { fill: #9966CC; stroke: #9966CC; stroke-opacity: 1; }
+
+    /* entrance */
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .rise { animation: rise .9s cubic-bezier(.2,.7,.2,1) both; }
+    .fade { animation: fade 1.4s ease both; }
+
+    /* schema line draw-in */
+    .draw { stroke-dasharray: 700; stroke-dashoffset: 700; animation: draw 2s ease forwards .25s; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    /* ───────── Intro overlay ───────── */
+    .intro {
+      position: fixed; inset: 0; z-index: 60;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #FBF9F6; cursor: pointer;
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+    .intro.done { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .intro-art { width: clamp(300px, 62vw, 840px); height: auto; overflow: visible; }
+
+    /* pen traces the cursive outline, then it fills in */
+    .hw-stroke {
+      fill: none; stroke: #1E2229; stroke-width: 10;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 1; stroke-dashoffset: 1;
+      animation: hwdraw 2.8s ease-out .2s forwards;
+    }
+    @keyframes hwdraw { to { stroke-dashoffset: 0; } }
+
+    .hw-fill { fill: #1E2229; fill-opacity: 0; animation: hwfill 1.4s ease-out 1.5s forwards; }
+    @keyframes hwfill { to { fill-opacity: 1; } }
+
+    /* tagline reveals word by word, starting with the handwriting */
+    .intro-tag {
+      margin-top: 1.6rem;
+      font: 500 13px Inter, sans-serif; letter-spacing: .26em; text-transform: uppercase;
+      color: rgba(30,34,41,.5);
+    }
+    .intro-tag span {
+      display: inline-block; opacity: 0; transform: translateY(8px);
+      animation: wordin .6s ease-out forwards;
+    }
+    @keyframes wordin { to { opacity: 1; transform: translateY(0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rise, .fade, .draw { animation: none !important; }
+      .hw-stroke { stroke-dashoffset: 0; animation: none; }
+      .hw-fill   { fill-opacity: 1; animation: none; }
+      .intro-tag span { opacity: 1; transform: none; animation: none; }
+    }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden bg-cream text-slate font-sans antialiased select-none">
+
+  <!-- ═════════════ Intro animation (plays on load of "/") ═════════════ -->
+  <div id="intro" class="intro" role="dialog" aria-label="February intro">
+    <svg class="intro-art" viewBox="-40 -800 3380 1180" aria-label="February">
+      <path class="hw-fill" d="M388 101Q278 101 196.5 67.0Q115 33 70.5 -26.5Q26 -86 26 -162Q26 -224 48.0 -275.0Q70 -326 106.5 -360.0Q143 -394 187 -405Q194 -406 194 -400Q194 -395 189 -392Q137 -361 109.5 -303.0Q82 -245 82 -174Q82 -97 122.0 -41.5Q162 14 231.5 43.5Q301 73 388 73Q463 73 530.5 46.5Q598 20 655.0 -26.0Q712 -72 757.5 -130.5Q803 -189 834 -253Q841 -268 848.0 -282.0Q855 -296 862 -310Q838 -311 818.5 -312.0Q799 -313 792 -313Q765 -313 734.5 -309.5Q704 -306 677.5 -296.0Q651 -286 634 -265Q627 -258 625.5 -254.0Q624 -250 621 -250Q617 -250 614.0 -256.5Q611 -263 615 -271Q638 -322 680.0 -340.5Q722 -359 774 -359Q785 -359 815.5 -355.5Q846 -352 880 -348Q924 -437 960.5 -509.0Q997 -581 1029 -629Q957 -653 876.0 -671.5Q795 -690 702 -690Q633 -690 577.0 -671.0Q521 -652 481.5 -620.0Q442 -588 421.0 -549.0Q400 -510 400 -471Q400 -427 417.0 -401.0Q434 -375 461.5 -363.5Q489 -352 518 -352Q561 -352 591.5 -373.0Q622 -394 640.0 -420.5Q658 -447 662 -464Q666 -480 674 -480Q686 -480 684 -466Q678 -422 653.0 -390.0Q628 -358 592.0 -341.5Q556 -325 516 -325Q475 -325 437.0 -345.0Q399 -365 375.0 -403.0Q351 -441 351 -495Q351 -539 370.5 -582.5Q390 -626 429.5 -662.5Q469 -699 530.0 -721.0Q591 -743 674 -743Q733 -743 795.0 -729.5Q857 -716 920.5 -695.5Q984 -675 1046 -653Q1067 -680 1086.0 -694.5Q1105 -709 1124 -709Q1132 -709 1135.0 -705.5Q1138 -702 1138 -699Q1138 -695 1135.0 -690.0Q1132 -685 1124 -685Q1091 -685 1062 -648Q1134 -624 1200.5 -605.5Q1267 -587 1324 -587Q1368 -587 1382.0 -596.5Q1396 -606 1396 -623Q1396 -634 1403 -634Q1408 -634 1412.5 -627.5Q1417 -621 1417 -612Q1417 -588 1390.5 -573.0Q1364 -558 1317 -558Q1255 -558 1188.0 -578.5Q1121 -599 1046 -624Q1019 -579 993.0 -506.5Q967 -434 932 -343Q975 -339 1023.0 -336.5Q1071 -334 1101 -334Q1111 -334 1111 -328Q1111 -320 1088 -314Q1073 -310 1037.5 -308.0Q1002 -306 964 -306Q956 -306 944.0 -306.5Q932 -307 918 -307Q909 -284 899.5 -260.5Q890 -237 879 -212Q837 -113 776.5 -51.5Q716 10 647.5 43.5Q579 77 511.5 89.0Q444 101 388 101Z M1184 4Q1147 4 1117.5 -20.0Q1088 -44 1088 -93Q1088 -134 1106.5 -180.0Q1125 -226 1155.5 -266.5Q1186 -307 1223.5 -332.5Q1261 -358 1299 -358Q1318 -358 1336.0 -347.0Q1354 -336 1354 -309Q1354 -284 1335.0 -254.0Q1316 -224 1281 -198Q1266 -187 1243.0 -177.0Q1220 -167 1197.0 -160.5Q1174 -154 1159 -154Q1154 -142 1149.5 -122.0Q1145 -102 1145 -81Q1145 -56 1155.0 -36.0Q1165 -16 1192 -16Q1225 -16 1253.5 -35.0Q1282 -54 1304.5 -83.0Q1327 -112 1343.0 -142.0Q1359 -172 1368 -193Q1380 -193 1380 -184Q1367 -156 1350.5 -123.0Q1334 -90 1311.5 -61.5Q1289 -33 1257.5 -14.5Q1226 4 1184 4ZM1166 -172Q1180 -172 1213.0 -182.5Q1246 -193 1273 -216Q1299 -239 1313.0 -266.5Q1327 -294 1327 -313Q1327 -335 1311 -335Q1299 -335 1278.0 -319.0Q1257 -303 1226 -265Q1207 -241 1190.0 -213.0Q1173 -185 1166 -172Z M1429 5Q1388 5 1371.0 -20.0Q1354 -45 1354 -81Q1354 -106 1359.5 -128.0Q1365 -150 1376 -178H1374Q1366 -178 1366 -186Q1366 -190 1374.5 -209.0Q1383 -228 1396.5 -255.0Q1410 -282 1424.5 -310.0Q1439 -338 1451 -360Q1471 -397 1495.0 -436.5Q1519 -476 1542.5 -512.0Q1566 -548 1582 -571Q1618 -621 1649 -621H1654Q1663 -621 1674.5 -618.0Q1686 -615 1696 -617Q1681 -601 1650.5 -559.5Q1620 -518 1584 -465Q1569 -443 1546.5 -406.0Q1524 -369 1499.0 -323.0Q1474 -277 1452.5 -229.5Q1431 -182 1417.0 -137.5Q1403 -93 1403 -58Q1403 -35 1411.0 -26.0Q1419 -17 1431 -17Q1446 -17 1466.5 -34.5Q1487 -52 1508.5 -80.5Q1530 -109 1548.0 -143.5Q1566 -178 1577.5 -213.5Q1589 -249 1589 -279Q1589 -308 1578.5 -321.0Q1568 -334 1551 -334Q1544 -334 1537.0 -330.5Q1530 -327 1525 -327Q1520 -327 1520 -332Q1520 -337 1530.5 -343.0Q1541 -349 1562 -349Q1581 -349 1600.5 -339.0Q1620 -329 1633.0 -306.5Q1646 -284 1646 -248Q1646 -205 1626.0 -160.5Q1606 -116 1574.0 -78.5Q1542 -41 1503.5 -18.0Q1465 5 1429 5Z M1696 -196Q1704 -213 1717.0 -250.5Q1730 -288 1744.0 -334.0Q1758 -380 1765 -421Q1768 -437 1776.0 -444.5Q1784 -452 1793 -452Q1806 -452 1817.0 -439.5Q1828 -427 1828 -404Q1828 -376 1811.5 -356.0Q1795 -336 1771 -318Q1781 -317 1792.0 -316.5Q1803 -316 1816 -316Q1863 -316 1909 -322Q1911 -316 1911 -313Q1911 -300 1903.5 -280.0Q1896 -260 1888 -244Q1884 -235 1872.0 -211.5Q1860 -188 1846.0 -158.5Q1832 -129 1822.5 -100.5Q1813 -72 1813 -52Q1813 -26 1833 -26Q1852 -26 1886.0 -70.5Q1920 -115 1954 -193Q1966 -193 1966 -184Q1955 -157 1938.5 -125.0Q1922 -93 1902.0 -64.5Q1882 -36 1859.0 -17.5Q1836 1 1811 1Q1792 1 1773.0 -14.5Q1754 -30 1754 -65Q1754 -96 1766.0 -125.5Q1778 -155 1793.0 -181.0Q1808 -207 1820.0 -227.0Q1832 -247 1832 -259Q1832 -277 1809.5 -285.0Q1787 -293 1751 -294Q1733 -248 1724.0 -226.0Q1715 -204 1707 -184Q1691 -184 1696 -196Z M1983 0Q1972 0 1956.5 -5.0Q1941 -10 1929.5 -23.5Q1918 -37 1918 -64Q1918 -90 1935.0 -124.0Q1952 -158 1965 -184Q1954 -184 1954 -193Q1955 -196 1963.0 -212.0Q1971 -228 1982.0 -250.0Q1993 -272 2003.5 -292.5Q2014 -313 2020 -324Q2032 -346 2058 -346H2120Q2103 -333 2089.5 -317.5Q2076 -302 2056 -261Q2056 -261 2049.0 -247.0Q2042 -233 2031.5 -211.5Q2021 -190 2010.5 -168.0Q2000 -146 1993 -131Q1980 -103 1976.0 -86.5Q1972 -70 1972 -56Q1972 -23 1994 -23Q2018 -23 2052 -62Q2080 -95 2107.0 -141.0Q2134 -187 2158.5 -236.0Q2183 -285 2202 -324Q2213 -346 2241 -346H2296Q2274 -328 2251.5 -292.0Q2229 -256 2202 -200Q2195 -185 2184.0 -162.0Q2173 -139 2164.5 -113.0Q2156 -87 2156 -61Q2156 -26 2181 -26Q2215 -26 2247.0 -73.0Q2279 -120 2310 -193Q2318 -193 2319.5 -192.0Q2321 -191 2322 -184Q2311 -157 2295.5 -125.5Q2280 -94 2260.5 -65.0Q2241 -36 2217.5 -18.0Q2194 0 2166 0Q2141 0 2125.0 -18.5Q2109 -37 2109 -71Q2109 -98 2119 -129Q2102 -99 2080.0 -69.0Q2058 -39 2033.0 -19.5Q2008 0 1983 0Z M2527 3Q2504 3 2486.5 -10.0Q2469 -23 2469 -63Q2469 -80 2471.5 -95.0Q2474 -110 2478 -127Q2469 -112 2453.0 -90.0Q2437 -68 2417.5 -47.0Q2398 -26 2377.5 -12.0Q2357 2 2339 2Q2313 2 2297.0 -21.5Q2281 -45 2281 -83Q2281 -124 2300.0 -171.0Q2319 -218 2352.0 -261.0Q2385 -304 2428.0 -331.0Q2471 -358 2518 -358Q2541 -358 2562.0 -350.5Q2583 -343 2599 -326Q2606 -319 2606 -310Q2606 -304 2601.0 -300.0Q2596 -296 2588 -298Q2577 -333 2541 -333Q2524 -333 2502 -322Q2475 -308 2444.5 -277.5Q2414 -247 2387.5 -208.5Q2361 -170 2344.0 -131.0Q2327 -92 2327 -60Q2327 -27 2352 -27Q2374 -27 2397.5 -48.0Q2421 -69 2442.5 -100.5Q2464 -132 2482.0 -163.0Q2500 -194 2510 -213Q2525 -240 2538.0 -258.0Q2551 -276 2575 -276Q2586 -276 2597.0 -273.0Q2608 -270 2620 -272Q2590 -242 2567.5 -201.0Q2545 -160 2533.0 -120.5Q2521 -81 2521 -54Q2521 -24 2541 -24Q2557 -24 2575.5 -42.0Q2594 -60 2611.5 -87.5Q2629 -115 2644.0 -143.5Q2659 -172 2668 -193Q2673 -193 2676.5 -192.0Q2680 -191 2680 -184Q2679 -180 2676.5 -175.5Q2674 -171 2669 -160Q2661 -144 2647.0 -117.0Q2633 -90 2614.0 -62.5Q2595 -35 2573.0 -16.0Q2551 3 2527 3Z M2669 -196Q2677 -213 2690.0 -250.5Q2703 -288 2717.0 -334.0Q2731 -380 2738 -421Q2741 -437 2749.0 -444.5Q2757 -452 2766 -452Q2779 -452 2790.0 -439.5Q2801 -427 2801 -404Q2801 -376 2784.5 -356.0Q2768 -336 2744 -318Q2754 -317 2765.0 -316.5Q2776 -316 2789 -316Q2836 -316 2882 -322Q2884 -316 2884 -313Q2884 -300 2876.5 -280.0Q2869 -260 2861 -244Q2857 -235 2845.0 -211.5Q2833 -188 2819.0 -158.5Q2805 -129 2795.5 -100.5Q2786 -72 2786 -52Q2786 -26 2806 -26Q2825 -26 2859.0 -70.5Q2893 -115 2927 -193Q2939 -193 2939 -184Q2928 -157 2911.5 -125.0Q2895 -93 2875.0 -64.5Q2855 -36 2832.0 -17.5Q2809 1 2784 1Q2765 1 2746.0 -14.5Q2727 -30 2727 -65Q2727 -96 2739.0 -125.5Q2751 -155 2766.0 -181.0Q2781 -207 2793.0 -227.0Q2805 -247 2805 -259Q2805 -277 2782.5 -285.0Q2760 -293 2724 -294Q2706 -248 2697.0 -226.0Q2688 -204 2680 -184Q2664 -184 2669 -196Z M2789 319Q2737 319 2715.0 298.5Q2693 278 2693 250Q2693 207 2724.5 170.5Q2756 134 2802 112Q2854 88 2920.5 73.0Q2987 58 3048 40Q3067 7 3083.0 -35.5Q3099 -78 3112.0 -118.5Q3125 -159 3133 -185Q3121 -163 3102.5 -131.5Q3084 -100 3061.0 -70.0Q3038 -40 3011.5 -20.0Q2985 0 2956 0Q2945 0 2929.5 -5.0Q2914 -10 2902.5 -23.5Q2891 -37 2891 -64Q2891 -90 2907.0 -121.5Q2923 -153 2939 -184Q2934 -184 2930.5 -185.0Q2927 -186 2927 -193Q2930 -199 2939.0 -219.0Q2948 -239 2959.5 -263.0Q2971 -287 2980 -305Q2991 -328 3004.5 -337.0Q3018 -346 3031 -346H3093Q3086 -340 3075.5 -332.5Q3065 -325 3056 -310Q3029 -264 3009.0 -221.5Q2989 -179 2966 -131Q2955 -108 2950.0 -89.0Q2945 -70 2945 -56Q2945 -23 2967 -23Q2991 -23 3025 -62Q3053 -95 3081.5 -140.5Q3110 -186 3136.5 -234.5Q3163 -283 3183 -324Q3194 -346 3222 -346H3277Q3248 -326 3232.5 -294.0Q3217 -262 3198 -212Q3177 -157 3158.0 -98.0Q3139 -39 3116 23Q3165 6 3198.0 -21.0Q3231 -48 3256.5 -90.5Q3282 -133 3308 -193Q3320 -193 3320 -184Q3298 -138 3280.0 -103.0Q3262 -68 3240.0 -41.5Q3218 -15 3185.0 7.5Q3152 30 3100 51Q3076 94 3045.5 140.5Q3015 187 2976.5 227.5Q2938 268 2891.5 293.5Q2845 319 2789 319ZM2765 299Q2798 299 2833.0 279.0Q2868 259 2901.0 228.5Q2934 198 2961.5 166.5Q2989 135 3006 111Q3011 104 3017.0 93.0Q3023 82 3029 72Q2980 85 2921.5 100.5Q2863 116 2820 135Q2772 155 2744.5 192.0Q2717 229 2717 258Q2717 276 2728.5 287.5Q2740 299 2765 299Z" />
+      <path class="hw-stroke" pathLength="1" d="M388 101Q278 101 196.5 67.0Q115 33 70.5 -26.5Q26 -86 26 -162Q26 -224 48.0 -275.0Q70 -326 106.5 -360.0Q143 -394 187 -405Q194 -406 194 -400Q194 -395 189 -392Q137 -361 109.5 -303.0Q82 -245 82 -174Q82 -97 122.0 -41.5Q162 14 231.5 43.5Q301 73 388 73Q463 73 530.5 46.5Q598 20 655.0 -26.0Q712 -72 757.5 -130.5Q803 -189 834 -253Q841 -268 848.0 -282.0Q855 -296 862 -310Q838 -311 818.5 -312.0Q799 -313 792 -313Q765 -313 734.5 -309.5Q704 -306 677.5 -296.0Q651 -286 634 -265Q627 -258 625.5 -254.0Q624 -250 621 -250Q617 -250 614.0 -256.5Q611 -263 615 -271Q638 -322 680.0 -340.5Q722 -359 774 -359Q785 -359 815.5 -355.5Q846 -352 880 -348Q924 -437 960.5 -509.0Q997 -581 1029 -629Q957 -653 876.0 -671.5Q795 -690 702 -690Q633 -690 577.0 -671.0Q521 -652 481.5 -620.0Q442 -588 421.0 -549.0Q400 -510 400 -471Q400 -427 417.0 -401.0Q434 -375 461.5 -363.5Q489 -352 518 -352Q561 -352 591.5 -373.0Q622 -394 640.0 -420.5Q658 -447 662 -464Q666 -480 674 -480Q686 -480 684 -466Q678 -422 653.0 -390.0Q628 -358 592.0 -341.5Q556 -325 516 -325Q475 -325 437.0 -345.0Q399 -365 375.0 -403.0Q351 -441 351 -495Q351 -539 370.5 -582.5Q390 -626 429.5 -662.5Q469 -699 530.0 -721.0Q591 -743 674 -743Q733 -743 795.0 -729.5Q857 -716 920.5 -695.5Q984 -675 1046 -653Q1067 -680 1086.0 -694.5Q1105 -709 1124 -709Q1132 -709 1135.0 -705.5Q1138 -702 1138 -699Q1138 -695 1135.0 -690.0Q1132 -685 1124 -685Q1091 -685 1062 -648Q1134 -624 1200.5 -605.5Q1267 -587 1324 -587Q1368 -587 1382.0 -596.5Q1396 -606 1396 -623Q1396 -634 1403 -634Q1408 -634 1412.5 -627.5Q1417 -621 1417 -612Q1417 -588 1390.5 -573.0Q1364 -558 1317 -558Q1255 -558 1188.0 -578.5Q1121 -599 1046 -624Q1019 -579 993.0 -506.5Q967 -434 932 -343Q975 -339 1023.0 -336.5Q1071 -334 1101 -334Q1111 -334 1111 -328Q1111 -320 1088 -314Q1073 -310 1037.5 -308.0Q1002 -306 964 -306Q956 -306 944.0 -306.5Q932 -307 918 -307Q909 -284 899.5 -260.5Q890 -237 879 -212Q837 -113 776.5 -51.5Q716 10 647.5 43.5Q579 77 511.5 89.0Q444 101 388 101Z M1184 4Q1147 4 1117.5 -20.0Q1088 -44 1088 -93Q1088 -134 1106.5 -180.0Q1125 -226 1155.5 -266.5Q1186 -307 1223.5 -332.5Q1261 -358 1299 -358Q1318 -358 1336.0 -347.0Q1354 -336 1354 -309Q1354 -284 1335.0 -254.0Q1316 -224 1281 -198Q1266 -187 1243.0 -177.0Q1220 -167 1197.0 -160.5Q1174 -154 1159 -154Q1154 -142 1149.5 -122.0Q1145 -102 1145 -81Q1145 -56 1155.0 -36.0Q1165 -16 1192 -16Q1225 -16 1253.5 -35.0Q1282 -54 1304.5 -83.0Q1327 -112 1343.0 -142.0Q1359 -172 1368 -193Q1380 -193 1380 -184Q1367 -156 1350.5 -123.0Q1334 -90 1311.5 -61.5Q1289 -33 1257.5 -14.5Q1226 4 1184 4ZM1166 -172Q1180 -172 1213.0 -182.5Q1246 -193 1273 -216Q1299 -239 1313.0 -266.5Q1327 -294 1327 -313Q1327 -335 1311 -335Q1299 -335 1278.0 -319.0Q1257 -303 1226 -265Q1207 -241 1190.0 -213.0Q1173 -185 1166 -172Z M1429 5Q1388 5 1371.0 -20.0Q1354 -45 1354 -81Q1354 -106 1359.5 -128.0Q1365 -150 1376 -178H1374Q1366 -178 1366 -186Q1366 -190 1374.5 -209.0Q1383 -228 1396.5 -255.0Q1410 -282 1424.5 -310.0Q1439 -338 1451 -360Q1471 -397 1495.0 -436.5Q1519 -476 1542.5 -512.0Q1566 -548 1582 -571Q1618 -621 1649 -621H1654Q1663 -621 1674.5 -618.0Q1686 -615 1696 -617Q1681 -601 1650.5 -559.5Q1620 -518 1584 -465Q1569 -443 1546.5 -406.0Q1524 -369 1499.0 -323.0Q1474 -277 1452.5 -229.5Q1431 -182 1417.0 -137.5Q1403 -93 1403 -58Q1403 -35 1411.0 -26.0Q1419 -17 1431 -17Q1446 -17 1466.5 -34.5Q1487 -52 1508.5 -80.5Q1530 -109 1548.0 -143.5Q1566 -178 1577.5 -213.5Q1589 -249 1589 -279Q1589 -308 1578.5 -321.0Q1568 -334 1551 -334Q1544 -334 1537.0 -330.5Q1530 -327 1525 -327Q1520 -327 1520 -332Q1520 -337 1530.5 -343.0Q1541 -349 1562 -349Q1581 -349 1600.5 -339.0Q1620 -329 1633.0 -306.5Q1646 -284 1646 -248Q1646 -205 1626.0 -160.5Q1606 -116 1574.0 -78.5Q1542 -41 1503.5 -18.0Q1465 5 1429 5Z M1696 -196Q1704 -213 1717.0 -250.5Q1730 -288 1744.0 -334.0Q1758 -380 1765 -421Q1768 -437 1776.0 -444.5Q1784 -452 1793 -452Q1806 -452 1817.0 -439.5Q1828 -427 1828 -404Q1828 -376 1811.5 -356.0Q1795 -336 1771 -318Q1781 -317 1792.0 -316.5Q1803 -316 1816 -316Q1863 -316 1909 -322Q1911 -316 1911 -313Q1911 -300 1903.5 -280.0Q1896 -260 1888 -244Q1884 -235 1872.0 -211.5Q1860 -188 1846.0 -158.5Q1832 -129 1822.5 -100.5Q1813 -72 1813 -52Q1813 -26 1833 -26Q1852 -26 1886.0 -70.5Q1920 -115 1954 -193Q1966 -193 1966 -184Q1955 -157 1938.5 -125.0Q1922 -93 1902.0 -64.5Q1882 -36 1859.0 -17.5Q1836 1 1811 1Q1792 1 1773.0 -14.5Q1754 -30 1754 -65Q1754 -96 1766.0 -125.5Q1778 -155 1793.0 -181.0Q1808 -207 1820.0 -227.0Q1832 -247 1832 -259Q1832 -277 1809.5 -285.0Q1787 -293 1751 -294Q1733 -248 1724.0 -226.0Q1715 -204 1707 -184Q1691 -184 1696 -196Z M1983 0Q1972 0 1956.5 -5.0Q1941 -10 1929.5 -23.5Q1918 -37 1918 -64Q1918 -90 1935.0 -124.0Q1952 -158 1965 -184Q1954 -184 1954 -193Q1955 -196 1963.0 -212.0Q1971 -228 1982.0 -250.0Q1993 -272 2003.5 -292.5Q2014 -313 2020 -324Q2032 -346 2058 -346H2120Q2103 -333 2089.5 -317.5Q2076 -302 2056 -261Q2056 -261 2049.0 -247.0Q2042 -233 2031.5 -211.5Q2021 -190 2010.5 -168.0Q2000 -146 1993 -131Q1980 -103 1976.0 -86.5Q1972 -70 1972 -56Q1972 -23 1994 -23Q2018 -23 2052 -62Q2080 -95 2107.0 -141.0Q2134 -187 2158.5 -236.0Q2183 -285 2202 -324Q2213 -346 2241 -346H2296Q2274 -328 2251.5 -292.0Q2229 -256 2202 -200Q2195 -185 2184.0 -162.0Q2173 -139 2164.5 -113.0Q2156 -87 2156 -61Q2156 -26 2181 -26Q2215 -26 2247.0 -73.0Q2279 -120 2310 -193Q2318 -193 2319.5 -192.0Q2321 -191 2322 -184Q2311 -157 2295.5 -125.5Q2280 -94 2260.5 -65.0Q2241 -36 2217.5 -18.0Q2194 0 2166 0Q2141 0 2125.0 -18.5Q2109 -37 2109 -71Q2109 -98 2119 -129Q2102 -99 2080.0 -69.0Q2058 -39 2033.0 -19.5Q2008 0 1983 0Z M2527 3Q2504 3 2486.5 -10.0Q2469 -23 2469 -63Q2469 -80 2471.5 -95.0Q2474 -110 2478 -127Q2469 -112 2453.0 -90.0Q2437 -68 2417.5 -47.0Q2398 -26 2377.5 -12.0Q2357 2 2339 2Q2313 2 2297.0 -21.5Q2281 -45 2281 -83Q2281 -124 2300.0 -171.0Q2319 -218 2352.0 -261.0Q2385 -304 2428.0 -331.0Q2471 -358 2518 -358Q2541 -358 2562.0 -350.5Q2583 -343 2599 -326Q2606 -319 2606 -310Q2606 -304 2601.0 -300.0Q2596 -296 2588 -298Q2577 -333 2541 -333Q2524 -333 2502 -322Q2475 -308 2444.5 -277.5Q2414 -247 2387.5 -208.5Q2361 -170 2344.0 -131.0Q2327 -92 2327 -60Q2327 -27 2352 -27Q2374 -27 2397.5 -48.0Q2421 -69 2442.5 -100.5Q2464 -132 2482.0 -163.0Q2500 -194 2510 -213Q2525 -240 2538.0 -258.0Q2551 -276 2575 -276Q2586 -276 2597.0 -273.0Q2608 -270 2620 -272Q2590 -242 2567.5 -201.0Q2545 -160 2533.0 -120.5Q2521 -81 2521 -54Q2521 -24 2541 -24Q2557 -24 2575.5 -42.0Q2594 -60 2611.5 -87.5Q2629 -115 2644.0 -143.5Q2659 -172 2668 -193Q2673 -193 2676.5 -192.0Q2680 -191 2680 -184Q2679 -180 2676.5 -175.5Q2674 -171 2669 -160Q2661 -144 2647.0 -117.0Q2633 -90 2614.0 -62.5Q2595 -35 2573.0 -16.0Q2551 3 2527 3Z M2669 -196Q2677 -213 2690.0 -250.5Q2703 -288 2717.0 -334.0Q2731 -380 2738 -421Q2741 -437 2749.0 -444.5Q2757 -452 2766 -452Q2779 -452 2790.0 -439.5Q2801 -427 2801 -404Q2801 -376 2784.5 -356.0Q2768 -336 2744 -318Q2754 -317 2765.0 -316.5Q2776 -316 2789 -316Q2836 -316 2882 -322Q2884 -316 2884 -313Q2884 -300 2876.5 -280.0Q2869 -260 2861 -244Q2857 -235 2845.0 -211.5Q2833 -188 2819.0 -158.5Q2805 -129 2795.5 -100.5Q2786 -72 2786 -52Q2786 -26 2806 -26Q2825 -26 2859.0 -70.5Q2893 -115 2927 -193Q2939 -193 2939 -184Q2928 -157 2911.5 -125.0Q2895 -93 2875.0 -64.5Q2855 -36 2832.0 -17.5Q2809 1 2784 1Q2765 1 2746.0 -14.5Q2727 -30 2727 -65Q2727 -96 2739.0 -125.5Q2751 -155 2766.0 -181.0Q2781 -207 2793.0 -227.0Q2805 -247 2805 -259Q2805 -277 2782.5 -285.0Q2760 -293 2724 -294Q2706 -248 2697.0 -226.0Q2688 -204 2680 -184Q2664 -184 2669 -196Z M2789 319Q2737 319 2715.0 298.5Q2693 278 2693 250Q2693 207 2724.5 170.5Q2756 134 2802 112Q2854 88 2920.5 73.0Q2987 58 3048 40Q3067 7 3083.0 -35.5Q3099 -78 3112.0 -118.5Q3125 -159 3133 -185Q3121 -163 3102.5 -131.5Q3084 -100 3061.0 -70.0Q3038 -40 3011.5 -20.0Q2985 0 2956 0Q2945 0 2929.5 -5.0Q2914 -10 2902.5 -23.5Q2891 -37 2891 -64Q2891 -90 2907.0 -121.5Q2923 -153 2939 -184Q2934 -184 2930.5 -185.0Q2927 -186 2927 -193Q2930 -199 2939.0 -219.0Q2948 -239 2959.5 -263.0Q2971 -287 2980 -305Q2991 -328 3004.5 -337.0Q3018 -346 3031 -346H3093Q3086 -340 3075.5 -332.5Q3065 -325 3056 -310Q3029 -264 3009.0 -221.5Q2989 -179 2966 -131Q2955 -108 2950.0 -89.0Q2945 -70 2945 -56Q2945 -23 2967 -23Q2991 -23 3025 -62Q3053 -95 3081.5 -140.5Q3110 -186 3136.5 -234.5Q3163 -283 3183 -324Q3194 -346 3222 -346H3277Q3248 -326 3232.5 -294.0Q3217 -262 3198 -212Q3177 -157 3158.0 -98.0Q3139 -39 3116 23Q3165 6 3198.0 -21.0Q3231 -48 3256.5 -90.5Q3282 -133 3308 -193Q3320 -193 3320 -184Q3298 -138 3280.0 -103.0Q3262 -68 3240.0 -41.5Q3218 -15 3185.0 7.5Q3152 30 3100 51Q3076 94 3045.5 140.5Q3015 187 2976.5 227.5Q2938 268 2891.5 293.5Q2845 319 2789 319ZM2765 299Q2798 299 2833.0 279.0Q2868 259 2901.0 228.5Q2934 198 2961.5 166.5Q2989 135 3006 111Q3011 104 3017.0 93.0Q3023 82 3029 72Q2980 85 2921.5 100.5Q2863 116 2820 135Q2772 155 2744.5 192.0Q2717 229 2717 258Q2717 276 2728.5 287.5Q2740 299 2765 299Z" />
+    </svg>
+    <!-- Placeholder tagline — swap for your real copy -->
+    <div class="intro-tag" aria-hidden="true">
+      <span style="animation-delay:.20s">Coming</span>
+      <span style="animation-delay:.36s">soon</span>
+      <span style="animation-delay:.52s">·</span>
+      <span style="animation-delay:.68s">By</span>
+      <span style="animation-delay:.84s">invitation</span>
+      <span style="animation-delay:1.00s">only</span>
+    </div>
+  </div>
+
+  <main class="relative h-full w-full">
+
+    <!-- ───── Faint polka-dot background ───── -->
+    <svg class="pointer-events-none absolute inset-0 -z-10 h-full w-full" aria-hidden="true">
+      <defs>
+        <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="#9966CC" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots)" opacity="0.07" />
+    </svg>
+
+    <!-- ───── Editorial frame (corners) ───── -->
+    <div class="pointer-events-none absolute inset-0 z-20 hidden md:block">
+      <div class="absolute left-0 right-0 top-0 px-8 lg:px-12 pt-6 flex items-center justify-between text-[10px] tracking-[.28em] uppercase text-slate/45 fade">
+        <span>Est. MMXXVI</span>
+        <span class="text-amethyst/50">✦</span>
+        <span>Singapore</span>
+      </div>
+      <div class="absolute left-0 right-0 bottom-0 px-8 lg:px-12 pb-6 flex items-center justify-between text-[10px] tracking-[.28em] uppercase text-slate/45 fade">
+        <span>Vol. 01 — The Matching Issue</span>
+        <span>By Invitation Only</span>
+      </div>
+    </div>
+
+    <!-- ───── 3-column grid ───── -->
+    <div class="grid h-full grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-10 lg:px-12">
+
+      <!-- ░░░ LEFT — Person A schema ░░░ -->
+      <section class="hidden lg:flex lg:col-span-4 h-full items-center justify-center" aria-hidden="true">
+        <svg viewBox="0 0 500 640" class="w-full h-[92vh] rise" style="animation-delay:.05s">
+          <!-- links -->
+          <g class="draw">
+            <!-- root → primary (pY: 80,172,263,385,477,568) -->
+            <path class="link" d="M340 320 C332 320 332 80  325 80"  />
+            <path class="link" d="M340 320 C332 320 332 172 325 172" />
+            <path class="link" d="M340 320 C332 320 332 263 325 263" />
+            <path class="link" d="M340 320 C332 320 332 385 325 385" />
+            <path class="link" d="M340 320 C332 320 332 477 325 477" />
+            <path class="link" d="M340 320 C332 320 332 568 325 568" />
+            <!-- primary → leaves -->
+            <path class="link" d="M175 80  C165 80  165 50  155 50"  />
+            <path class="link" d="M175 80  C165 80  165 111 155 111" />
+            <path class="link" d="M175 172 C165 172 165 172 155 172" />
+            <path class="link-match" d="M175 263 C165 263 165 233 155 233" />
+            <path class="link" d="M175 263 C165 263 165 294 155 294" />
+            <path class="link-match" d="M175 385 C165 385 165 355 155 355" />
+            <path class="link-match" d="M175 385 C165 385 165 416 155 416" />
+            <path class="link-match" d="M175 477 C165 477 165 477 155 477" />
+            <path class="link" d="M175 568 C165 568 165 538 155 538" />
+            <path class="link" d="M175 568 C165 568 165 599 155 599" />
+          </g>
+
+          <!-- ROOT -->
+          <g class="fade">
+            <rect class="box-root" x="335" y="301" width="150" height="38" rx="19" />
+            <circle cx="356" cy="320" r="3" fill="#9966CC" />
+            <text class="n-root" x="416" y="324" text-anchor="middle">Person A</text>
+          </g>
+
+          <!-- PRIMARY interests -->
+          <g>
+            <rect class="box-prim"  x="173" y="63"  width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="84"  text-anchor="middle">loves football</text>
+
+            <rect class="box-prim"  x="173" y="155" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="176" text-anchor="middle">weekend homebody</text>
+
+            <rect class="box-share" x="173" y="246" width="154" height="34" rx="17" />
+            <text class="n-share"   x="250" y="267" text-anchor="middle">music is everything</text>
+
+            <rect class="box-prim"  x="173" y="368" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="389" text-anchor="middle">foodie tendencies</text>
+
+            <rect class="box-prim"  x="173" y="460" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="481" text-anchor="middle">into slow living</text>
+
+            <rect class="box-share" x="173" y="551" width="154" height="34" rx="17" />
+            <text class="n-share"   x="250" y="572" text-anchor="middle">shoots film</text>
+          </g>
+
+          <!-- LEAF nodes -->
+          <g>
+            <rect class="box" x="3" y="34"  width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="54"  text-anchor="middle">plays striker</text>
+
+            <rect class="box" x="3" y="95"  width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="115" text-anchor="middle">supports portugal</text>
+
+            <rect class="box" x="3" y="156" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="176" text-anchor="middle">3am side projects</text>
+
+            <rect class="box-match" x="3" y="217" width="152" height="32" rx="16" />
+            <text class="n-match" x="79" y="237" text-anchor="middle">uk garage</text>
+
+            <rect class="box" x="3" y="278" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="298" text-anchor="middle">hunts for vinyl</text>
+
+            <rect class="box-match" x="3" y="339" width="152" height="32" rx="16" />
+            <text class="n-match" x="79" y="359" text-anchor="middle">late-night supper</text>
+
+            <rect class="box-match" x="3" y="400" width="152" height="32" rx="16" />
+            <text class="n-match" x="79" y="420" text-anchor="middle">natural wine</text>
+
+            <rect class="box-match" x="3" y="461" width="152" height="32" rx="16" />
+            <text class="n-match" x="79" y="481" text-anchor="middle">sunday reading</text>
+
+            <rect class="box" x="3" y="522" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="542" text-anchor="middle">analog photos</text>
+
+            <rect class="box" x="3" y="583" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="79" y="603" text-anchor="middle">kopi over coffee</text>
+          </g>
+        </svg>
+      </section>
+
+      <!-- ░░░ CENTER — Brand & CTA ░░░ -->
+      <section class="col-span-1 lg:col-span-4 flex flex-col items-center justify-center text-center px-2">
+        <div class="relative z-10 rise" style="animation-delay:.15s">
+
+          <!-- Amethyst gem emblem -->
+          <div class="mx-auto mb-5 w-14 sm:w-16">
+            <svg viewBox="0 0 48 48" class="w-full" aria-hidden="true">
+              <g fill="none" stroke="#9966CC" stroke-width="1.3" stroke-linejoin="round">
+                <path fill="#9966CC14" d="M24 3 L40 16 L33 38 L24 45 L15 38 L8 16 Z" />
+                <path fill="#9966CC24" d="M24 3 L40 16 L24 22 Z" />
+                <path fill="#9966CC10" d="M24 3 L8 16 L24 22 Z" />
+                <path d="M8 16 L24 22 L40 16" />
+                <path d="M15 38 L24 22 L33 38" />
+                <path d="M24 22 L24 45" />
+              </g>
+            </svg>
+          </div>
+
+          <p class="text-[11px] sm:text-xs tracking-[.42em] uppercase text-amethyst/70 mb-4">The Matching Engine</p>
+
+          <h1 class="font-serif italic font-medium leading-none text-slate text-7xl sm:text-8xl lg:text-[6.6rem]">
+            February
+          </h1>
+
+          <div class="mx-auto my-7 flex items-center justify-center gap-3 text-slate/30">
+            <span class="h-px w-12 bg-slate/20"></span>
+            <span class="text-amethyst text-sm">✦</span>
+            <span class="h-px w-12 bg-slate/20"></span>
+          </div>
+
+          <p class="mx-auto max-w-md text-lg sm:text-xl leading-relaxed text-slate/65">
+            A slow-paced matching engine for<br class="hidden sm:block" />
+            subcultures and shared values.
+          </p>
+
+          <!-- Waitlist -->
+          <form class="mx-auto mt-9 w-full max-w-md" onsubmit="return joinWaitlist(event)">
+            <div class="flex items-stretch gap-1.5 rounded-2xl border border-slate/15 bg-white/70 p-1.5 shadow-[inset_0_1px_3px_rgba(30,34,41,0.06)] focus-within:border-amethyst/40 transition-colors">
+              <input
+                id="email" type="email" autocomplete="email"
+                placeholder="Email address"
+                class="min-w-0 flex-1 bg-transparent px-3 text-base text-slate placeholder:text-slate/35 focus:outline-none" />
+              <button
+                type="submit"
+                class="shrink-0 rounded-xl bg-amethyst px-5 py-3 text-sm font-medium text-white tracking-wide transition-all duration-300 ease-out hover:bg-[#804FBF] hover:shadow-[0_8px_24px_-6px_rgba(153,102,204,0.55)] active:scale-[.98]">
+                Request Invitation
+              </button>
+            </div>
+            <p id="formnote" class="mt-3 text-[12px] tracking-wide text-slate/40">
+              No algorithms optimising for your attention.
+            </p>
+          </form>
+
+          <!-- Mobile: simplified shared-signals view (trees are desktop-only) -->
+          <div class="lg:hidden mt-9 border-t border-slate/10 pt-6">
+            <div class="flex items-center justify-center gap-3 text-[10px] uppercase tracking-[.28em] text-slate/50">
+              <span>Person A</span>
+              <svg viewBox="0 0 48 48" class="w-5" aria-hidden="true">
+                <g fill="none" stroke="#9966CC" stroke-width="1.6" stroke-linejoin="round">
+                  <path fill="#9966CC20" d="M24 3 L40 16 L33 38 L24 45 L15 38 L8 16 Z" />
+                  <path d="M8 16 L24 22 L40 16" /><path d="M24 22 L24 45" />
+                </g>
+              </svg>
+              <span>Person B</span>
+            </div>
+            <p class="mt-2 text-[12px] text-amethyst/80 tracking-wide">Six shared signals</p>
+            <div class="mt-3 flex flex-wrap justify-center gap-2">
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">music is everything</span>
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">uk garage</span>
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">natural wine</span>
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">late-night supper</span>
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">sunday reading</span>
+              <span class="rounded-full border border-amethyst/45 bg-amethyst/[0.06] px-3 py-1 text-[12px] text-[#7E4FB8]">shoots film</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ░░░ RIGHT — Person B schema ░░░ -->
+      <section class="hidden lg:flex lg:col-span-4 h-full items-center justify-center" aria-hidden="true">
+        <svg viewBox="0 0 500 640" class="w-full h-[92vh] rise" style="animation-delay:.05s">
+          <!-- links -->
+          <g class="draw">
+            <!-- root → primary -->
+            <path class="link" d="M160 320 C168 320 168 80  175 80"  />
+            <path class="link" d="M160 320 C168 320 168 172 175 172" />
+            <path class="link" d="M160 320 C168 320 168 263 175 263" />
+            <path class="link" d="M160 320 C168 320 168 385 175 385" />
+            <path class="link" d="M160 320 C168 320 168 477 175 477" />
+            <path class="link" d="M160 320 C168 320 168 568 175 568" />
+            <!-- primary → leaves -->
+            <path class="link-match" d="M325 80  C335 80  335 50  345 50"  />
+            <path class="link-match" d="M325 80  C335 80  335 111 345 111" />
+            <path class="link" d="M325 172 C335 172 335 172 345 172" />
+            <path class="link" d="M325 263 C335 263 335 233 345 233" />
+            <path class="link-match" d="M325 263 C335 263 335 294 345 294" />
+            <path class="link" d="M325 385 C335 385 335 355 345 355" />
+            <path class="link" d="M325 385 C335 385 335 416 345 416" />
+            <path class="link-match" d="M325 477 C335 477 335 477 345 477" />
+            <path class="link" d="M325 568 C335 568 335 538 345 538" />
+            <path class="link" d="M325 568 C335 568 335 599 345 599" />
+          </g>
+
+          <!-- ROOT -->
+          <g class="fade">
+            <rect class="box-root" x="10" y="301" width="150" height="38" rx="19" />
+            <circle cx="31" cy="320" r="3" fill="#9966CC" />
+            <text class="n-root" x="93" y="324" text-anchor="middle">Person B</text>
+          </g>
+
+          <!-- PRIMARY interests -->
+          <g>
+            <rect class="box-share" x="173" y="63"  width="154" height="34" rx="17" />
+            <text class="n-share"   x="250" y="84"  text-anchor="middle">foodie at heart</text>
+
+            <rect class="box-prim"  x="173" y="155" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="176" text-anchor="middle">always exploring</text>
+
+            <rect class="box-share" x="173" y="246" width="154" height="34" rx="17" />
+            <text class="n-share"   x="250" y="267" text-anchor="middle">music is everything</text>
+
+            <rect class="box-prim"  x="173" y="368" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="389" text-anchor="middle">design obsessed</text>
+
+            <rect class="box-prim"  x="173" y="460" width="154" height="34" rx="17" />
+            <text class="n-primary" x="250" y="481" text-anchor="middle">quiet weekends</text>
+
+            <rect class="box-share" x="173" y="551" width="154" height="34" rx="17" />
+            <text class="n-share"   x="250" y="572" text-anchor="middle">shoots film</text>
+          </g>
+
+          <!-- LEAF nodes -->
+          <g>
+            <rect class="box-match" x="345" y="34"  width="152" height="32" rx="16" />
+            <text class="n-match" x="421" y="54"  text-anchor="middle">natural wine</text>
+
+            <rect class="box-match" x="345" y="95"  width="152" height="32" rx="16" />
+            <text class="n-match" x="421" y="115" text-anchor="middle">late-night supper</text>
+
+            <rect class="box" x="345" y="156" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="176" text-anchor="middle">holland village</text>
+
+            <rect class="box" x="345" y="217" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="237" text-anchor="middle">deep house</text>
+
+            <rect class="box-match" x="345" y="278" width="152" height="32" rx="16" />
+            <text class="n-match" x="421" y="298" text-anchor="middle">uk garage</text>
+
+            <rect class="box" x="345" y="339" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="359" text-anchor="middle">creative direction</text>
+
+            <rect class="box" x="345" y="400" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="420" text-anchor="middle">loves good fits</text>
+
+            <rect class="box-match" x="345" y="461" width="152" height="32" rx="16" />
+            <text class="n-match" x="421" y="481" text-anchor="middle">sunday reading</text>
+
+            <rect class="box" x="345" y="522" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="542" text-anchor="middle">boiler room sets</text>
+
+            <rect class="box" x="345" y="583" width="152" height="32" rx="16" />
+            <text class="n-leaf" x="421" y="603" text-anchor="middle">polaroids</text>
+          </g>
+        </svg>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    /* Intro: dismiss after the sequence, or on click / Esc */
+    (function () {
+      var intro = document.getElementById('intro');
+      if (!intro) return;
+      var dismissed = false;
+      function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        intro.classList.add('done');
+      }
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(dismiss, reduce ? 1200 : 3700);
+      intro.addEventListener('click', dismiss);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') dismiss(); });
+    })();
+
+    function joinWaitlist(e) {
+      e.preventDefault();
+      var email = document.getElementById('email');
+      var note  = document.getElementById('formnote');
+      var val = (email.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        note.textContent = 'Please enter a valid email address.';
+        note.className = 'mt-3 text-[12px] tracking-wide text-amethyst';
+        email.focus();
+        return false;
+      }
+      note.textContent = '✦  You’re on the list. We’ll reach out in February.';
+      note.className = 'mt-3 text-[12px] tracking-wide text-amethyst';
+      email.value = '';
+      email.disabled = true;
+      return false;
+    }
+  </script>
+</body>
+</html>
