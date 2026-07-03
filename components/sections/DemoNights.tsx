@@ -14,17 +14,15 @@ export default function DemoNights() {
           Show Up and <span className="italic text-sage">Play</span>
         </>
       }
-      tagline="Real nights out with people you'd actually click with."
-      body="Our whole reason for existing: getting highly compatible people off their phones and into hosted group game nights. We cluster you with one or two other well-matched couples, book the venue, and hand the night to a live host — so you just show up and play."
+      tagline="Nights out with people you'd actually click with."
+      body="We match compatible couples, book the venue, and bring a live host. You just show up and play."
       phone={<NightsScreen />}
     >
-      <Bullet icon={<PartyPopper strokeWidth={1.5} className="h-5 w-5" />} term="Hosted, never left to chance" delay={340}>
-        A live host runs the room and keeps the energy up, so the night stays fluid and nobody
-        faces a single second of awkward silence.
+      <Bullet icon={<PartyPopper strokeWidth={1.5} className="h-5 w-5" />} term="Hosted, never awkward" delay={340}>
+        A live host keeps the energy up all night.
       </Bullet>
-      <Bullet icon={<ShieldCheck strokeWidth={1.5} className="h-5 w-5" />} term="A great night, guaranteed" delay={420}>
-        Even if a romantic spark doesn&rsquo;t hit with your match, you still walk away from a fun,
-        safe night out with a vetted peer group.
+      <Bullet icon={<ShieldCheck strokeWidth={1.5} className="h-5 w-5" />} term="Always a good night" delay={420}>
+        A vetted group and a great venue, every time.
       </Bullet>
     </PhoneDemo>
   );

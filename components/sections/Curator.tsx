@@ -17,19 +17,19 @@ const STATS = [
     icon: <PartyPopper strokeWidth={1.5} className="h-5 w-5" />,
     value: "150+",
     label: "Live events hosted",
-    body: "From premium pool parties to curated local bar meetups across Singapore.",
+    body: "Pool parties to bar meetups across Singapore.",
   },
   {
     icon: <Users strokeWidth={1.5} className="h-5 w-5" />,
     value: "4,000+",
     label: "Social connections facilitated",
-    body: "Proven expertise breaking the ice and managing group dynamics — not a second of awkwardness.",
+    body: "Zero awkwardness — guaranteed.",
   },
   {
     icon: <ShieldCheck strokeWidth={1.5} className="h-5 w-5" />,
     value: "100%",
     label: "Vetted venues only",
-    body: "Every partner space is hand-selected and continuously reviewed for safety, comfort, and noise.",
+    body: "Hand-picked for safety, comfort, and vibe.",
   },
 ];
 
@@ -80,10 +80,8 @@ export default function Curator() {
             Vetted rooms. Powered by <span className="italic text-blush">elite hosts</span>.
           </h2>
           <p className="rise mt-5 text-[15px] leading-relaxed text-background/70" style={rd(200)}>
-            Meet your launch curator, <span className="text-background">{HOST}</span>. An
-            algorithm can pair the personalities — but a machine can&rsquo;t run the room. To keep
-            your night seamless, fluid, and high-energy, February partners with certified
-            hospitality and event specialists.
+            Meet your launch curator, <span className="text-background">{HOST}</span>. A machine
+            can&rsquo;t run a room — our certified hosts can.
           </p>
 
           <dl className="mt-10 space-y-6">

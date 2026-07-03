@@ -41,9 +41,9 @@ export default function ScreenShell({
         <div className="flex items-end justify-between gap-2 px-6 pb-3 pt-4">
           <div>
             {eyebrow && (
-              <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-sage">{eyebrow}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sage">{eyebrow}</p>
             )}
-            {title && <h4 className="mt-1 font-serif text-[19px] leading-tight text-forest">{title}</h4>}
+            {title && <h4 className="mt-1 font-serif text-[22px] leading-tight text-forest">{title}</h4>}
           </div>
           {right}
         </div>

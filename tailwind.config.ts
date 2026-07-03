@@ -105,7 +105,7 @@ const config: Config = {
         bob: "bob 6s ease-in-out infinite",
         pop: "pop 0.45s cubic-bezier(0.22,1,0.36,1) both",
         "grow-x": "grow-x 0.7s cubic-bezier(0.22,1,0.36,1) both",
-        deplete: "deplete 3.2s linear infinite",
+        deplete: "deplete 2.2s linear infinite",
       },
     },
   },

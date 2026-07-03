@@ -14,17 +14,15 @@ export default function DemoQuiz() {
           Answer Once. <span className="italic text-sage">Match Smarter.</span>
         </>
       }
-      tagline="A comprehensive quiz that actually understands you."
-      body="Before you meet anyone, you complete a deep compatibility quiz. Tell us how much each answer matters to you, which answers you could accept in a partner, and let personality prompts score your Big Five, interests, and lifestyle — so the algorithm can find someone you'd genuinely fall for."
+      tagline="A quiz that actually gets you."
+      body="Rate what matters, set your dealbreakers, reveal your Big Five. The algorithm handles the rest."
       phone={<QuizScreen />}
     >
-      <Bullet icon={<SlidersHorizontal strokeWidth={1.5} className="h-5 w-5" />} term="Weighted to your dealbreakers" delay={340}>
-        Rank how much every answer matters and mark the responses you&rsquo;d actually accept — your
-        non-negotiables genuinely count in the match.
+      <Bullet icon={<SlidersHorizontal strokeWidth={1.5} className="h-5 w-5" />} term="Your dealbreakers count" delay={340}>
+        Weight every answer — non-negotiables stay non-negotiable.
       </Bullet>
-      <Bullet icon={<Fingerprint strokeWidth={1.5} className="h-5 w-5" />} term="Personality, not just photos" delay={420}>
-        Big Five prompts map who you really are, then pair you on structure, values, and lifestyle
-        — never a swipe on a single selfie.
+      <Bullet icon={<Fingerprint strokeWidth={1.5} className="h-5 w-5" />} term="Personality, not photos" delay={420}>
+        Matched on your Big Five, not a single selfie.
       </Bullet>
     </PhoneDemo>
   );

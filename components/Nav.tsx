@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
 const links = [
@@ -29,9 +30,15 @@ export default function Nav() {
             : "border border-transparent bg-transparent text-background"
         }`}
       >
-        <a href="#top" className="flex items-center gap-2 font-serif text-2xl font-semibold tracking-tight">
-          <span className="h-2 w-2 rounded-full bg-sage" aria-hidden />
-          February
+        <a href="#top" className="flex items-center" aria-label="february.place home">
+          <Image
+            src="/actuallogo.png"
+            alt="february.place"
+            width={40}
+            height={40}
+            priority
+            className="h-10 w-10 rounded-sm"
+          />
         </a>
 
         {/* Desktop */}
@@ -71,15 +78,6 @@ export default function Nav() {
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        <div className="flex items-center justify-between px-6 py-6">
-          <span className="flex items-center gap-2 font-serif text-2xl font-semibold text-forest">
-            <span className="h-2 w-2 rounded-full bg-sage" aria-hidden />
-            February
-          </span>
-          <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="text-forest">
-            <X strokeWidth={1.5} className="h-6 w-6" />
-          </button>
-        </div>
         <div className="flex flex-col gap-2 px-6 pt-12">
           {links.map((l, i) => (
             <a

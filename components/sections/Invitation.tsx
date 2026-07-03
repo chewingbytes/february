@@ -1,3 +1,4 @@
+import Image from "next/image";
 import InviteForm from "@/components/InviteForm";
 import Reveal from "@/components/Reveal";
 
@@ -31,8 +32,7 @@ export default function Invitation() {
             Reclaim your <span className="italic text-terracotta">evening</span> energy.
           </h2>
           <p className="rise mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-forest/60 md:text-lg" style={rd(240)}>
-            No public catalogs. No predatory loops designed to keep you scrolling. Just smart
-            psychological matching, interactive play, and highly intentional hosted group dates.
+            No catalogs. No endless scrolling. Just smart matches and hosted nights out.
           </p>
 
           <div className="rise mx-auto mt-10 max-w-lg text-left" style={rd(340)}>
@@ -43,10 +43,9 @@ export default function Invitation() {
 
       <Reveal className="mt-14">
         <footer className="flex flex-col items-center justify-between gap-4 border-t border-stone pt-8 text-center sm:flex-row sm:text-left">
-          <span className="font-serif text-xl font-semibold tracking-tight text-forest">February</span>
+          <Image src="/logo.png" alt="february.place" width={44} height={44} className="h-11 w-11" />
           <p className="max-w-md text-xs leading-relaxed text-forest/45">
-            February © 2026. Built by developers and experience designers for authentic human
-            connection.
+            february.place © 2026. Built for authentic human connection.
           </p>
         </footer>
       </Reveal>

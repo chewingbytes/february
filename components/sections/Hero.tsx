@@ -15,17 +15,17 @@ const rd = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as React.CSSPropert
 
 /**
  * Section 1 — the hero.
- * Desktop: a full-height photograph (public/hero.jpg) with a giant "February"
- * centered over it and the positioning line bottom-left. A light tint keeps
- * text legible while letting the photo stay prominent.
- * Mobile: the photo keeps its natural landscape shape as a top banner (shrinks
- * with the device), and the copy sits below on warm alabaster.
+ * Desktop: a full-height photograph with the logo centered over it and the
+ * positioning line bottom-left.
+ * Mobile: a tall photo with the logo composited on top — the transparent PNG's
+ * whitespace shows the photo, so the square never reads as a boxy block — fading
+ * into alabaster where a short tagline + CTA sit.
  */
 export default function Hero() {
   return (
     <section id="top" className="relative flex flex-col overflow-hidden">
-      {/* image: banner on mobile (natural 16:9), full-screen on desktop */}
-      <div className="relative aspect-[16/9] w-full md:aspect-auto md:h-[100svh]">
+      {/* photo — tall on mobile, full-height on desktop (single shared image) */}
+      <div className="relative h-[60svh] min-h-[440px] w-full md:h-[100svh]">
         <Image
           src="/hero.jpg"
           alt="A live host keeping the energy up at a February hosted game night in Singapore"
@@ -35,23 +35,45 @@ export default function Hero() {
           className="object-cover"
         />
 
-        {/* light readability tint — desktop only (mobile copy sits below the photo) */}
-        <div aria-hidden className="absolute inset-0 bg-forest/60 block" />
+        {/* readability tint */}
+        <div aria-hidden className="absolute inset-0 bg-forest/60" />
+        {/* desktop: darken toward the bottom-left copy */}
         <div
           aria-hidden
           className="absolute inset-0 hidden bg-gradient-to-t from-[#141210]/75 via-transparent to-transparent md:block"
         />
-        {/* soft fade blending the mobile banner into the alabaster page */}
+        {/* mobile: fade the photo down into the alabaster copy below it */}
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background md:hidden"
+          className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background md:hidden"
         />
+
+        {/* mobile: logo composited over the photo */}
+        <div className="absolute inset-0 z-10 grid place-items-center px-8 md:hidden">
+          <h1 className="animate-float-up w-full">
+            <Image
+              src="/transparent-background-logo.png"
+              alt="february.place"
+              width={2000}
+              height={2000}
+              priority
+              className="mx-auto h-auto w-[70%] max-w-[240px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
+            />
+          </h1>
+        </div>
 
         {/* desktop overlay copy */}
         <div className="absolute inset-0 hidden flex-col md:flex">
           <div className="flex flex-1 items-center justify-center px-4">
-            <h1 className="animate-float-up select-none text-center font-serif text-[19vw] font-semibold leading-[0.9] tracking-tight text-background drop-shadow-[0_2px_24px_rgba(0,0,0,0.4)]">
-              February
+            <h1 className="animate-float-up">
+              <Image
+                src="/transparent-background-logo.png"
+                alt="february.place"
+                width={2000}
+                height={2000}
+                priority
+                className="h-auto w-[50vw] max-w-9xl drop-shadow-[0_2px_26px_rgba(0,0,0,0.5)]"
+              />
             </h1>
           </div>
           <div className="w-full px-12 pb-14">
@@ -75,20 +97,17 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* mobile copy — below the photo, on alabaster */}
-      <div className="px-6 pb-4 pt-8 text-center md:hidden">
-        <h1 className="animate-float-up select-none font-serif text-[19vw] font-semibold leading-[0.9] tracking-tight text-forest">
-          February
-        </h1>
+      {/* mobile copy — on alabaster, directly under the fading photo */}
+      <div className="px-6 pb-2 pt-5 text-center md:hidden">
         <p
-          className="animate-float-up mx-auto mt-5 max-w-sm text-[15px] leading-relaxed text-forest/70"
+          className="animate-float-up mx-auto max-w-sm text-[15px] leading-relaxed text-forest/70"
           style={{ animationDelay: "120ms" }}
         >
           {LEDE}
         </p>
         <a
           href="#request"
-          className="animate-float-up btn-primary mt-7 inline-flex h-12 items-center gap-2 px-7"
+          className="animate-float-up btn-primary mt-6 inline-flex h-12 items-center gap-2 px-7"
           style={{ animationDelay: "220ms" }}
         >
           Request an invitation
