@@ -57,7 +57,7 @@ export default function Hero() {
               width={2000}
               height={2000}
               priority
-              className="mx-auto h-auto w-[70%] max-w-[240px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
+              className="mx-auto h-auto w-full max-w-[512px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
             />
           </h1>
         </div>
