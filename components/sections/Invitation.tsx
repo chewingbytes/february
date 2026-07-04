@@ -31,7 +31,7 @@ export default function Invitation() {
             Ready to lock in your <span className="italic text-terracotta"> Player 2</span>?
           </h2>
           <p className="rise mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-forest/60 md:text-lg" style={rd(240)}>
-            No endless scrolling. No awkward first dates. Just smart matches and hosted game nights.
+            No endless swiping. No awkward first dates. Just smart matches and hosted game nights.
           </p>
 
           <div className="rise mx-auto mt-10 max-w-lg text-left" style={rd(340)}>
