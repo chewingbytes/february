@@ -119,6 +119,8 @@
   .animate-pop,
   .animate-grow-x,
   .animate-deplete,
+  .animate-roll,
+  .animate-hop,
   .animate-spin {
     animation: none !important;
   }

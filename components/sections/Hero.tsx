@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Reveal from "@/components/Reveal";
+import GameNightScene from "@/components/sections/GameNightScene";
 
 const LEDE =
   "Team up with your perfect match and battle against other matches in hosted game nights.";
@@ -138,6 +139,10 @@ export default function Hero() {
           — Antoine de Saint-Exupéry
         </cite>
       </Reveal>
+
+      {/* An illustrated beat that gives the quote a picture: couples gathered
+          around a table, playing together — "looking outward in the same direction." */}
+      <GameNightScene />
     </section>
   );
 }

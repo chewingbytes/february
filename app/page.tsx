@@ -1,8 +1,6 @@
 import Nav from "@/components/Nav";
 import Hero from "@/components/sections/Hero";
-import DemoNights from "@/components/sections/DemoNights";
-import DemoQuiz from "@/components/sections/DemoQuiz";
-import DemoGames from "@/components/sections/DemoGames";
+import HowItWorks from "@/components/sections/HowItWorks";
 import Curator from "@/components/sections/Curator";
 import Invitation from "@/components/sections/Invitation";
 
@@ -11,10 +9,8 @@ export default function Home() {
     <main className="relative">
       <Nav />
       <Hero />
-      {/* How it works — three live phone demos, goal first */}
-      <DemoNights />
-      <DemoQuiz />
-      <DemoGames />
+      {/* How it works — the three-move story as a fan of slanted cards */}
+      <HowItWorks />
       <Curator />
       <Invitation />
     </main>

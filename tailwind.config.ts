@@ -95,6 +95,20 @@ const config: Config = {
           "0%": { transform: "scaleX(1)" },
           "100%": { transform: "scaleX(0)" },
         },
+        // A die tumbling then settling — a full turn, then a beat of rest
+        roll: {
+          "0%": { transform: "rotate(0deg)" },
+          "14%": { transform: "rotate(198deg)" },
+          "26%": { transform: "rotate(360deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        // A board-game token hopping forward a space and back
+        hop: {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "25%": { transform: "translate(2px, -10px)" },
+          "50%": { transform: "translate(5px, 0)" },
+          "75%": { transform: "translate(2px, -10px)" },
+        },
       },
       animation: {
         "float-up": "float-up 0.9s cubic-bezier(0.22,1,0.36,1) both",
@@ -106,6 +120,8 @@ const config: Config = {
         pop: "pop 0.45s cubic-bezier(0.22,1,0.36,1) both",
         "grow-x": "grow-x 0.7s cubic-bezier(0.22,1,0.36,1) both",
         deplete: "deplete 2.2s linear infinite",
+        roll: "roll 4.5s cubic-bezier(0.5,0,0.2,1) infinite",
+        hop: "hop 3.2s ease-in-out infinite",
       },
     },
   },

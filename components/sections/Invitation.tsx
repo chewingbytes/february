@@ -45,7 +45,7 @@ export default function Invitation() {
         <footer className="flex flex-col items-center justify-between gap-4 border-t border-stone pt-8 text-center sm:flex-row sm:text-left">
           <Image src="/logo.png" alt="february.place" width={44} height={44} className="h-11 w-11" />
           <p className="max-w-md text-xs leading-relaxed text-forest/45">
-            february.place © 2026. Built for authentic human connection.
+            Built for authentic human connection.
           </p>
         </footer>
       </Reveal>
