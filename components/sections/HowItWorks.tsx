@@ -3,10 +3,16 @@
 import { useState } from "react";
 import { SlidersHorizontal, Gamepad2, PartyPopper } from "lucide-react";
 import Reveal from "@/components/Reveal";
-import { CardPhone, QuizMini, SparkMini, NightMini } from "@/components/sections/CardPhone";
+import {
+  CardPhone,
+  QuizMini,
+  SparkMini,
+  NightMini,
+} from "@/components/sections/CardPhone";
 
 /** Per-element reveal delay, for staggering `.rise` children. */
-const rd = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as React.CSSProperties;
+const rd = (ms: number) =>
+  ({ "--reveal-delay": `${ms}ms` }) as React.CSSProperties;
 
 type Step = {
   num: string;
@@ -61,19 +67,33 @@ const STEPS: Step[] = [
  */
 export default function HowItWorks() {
   return (
-    <section id="how" className="mx-auto max-w-content px-6 py-24 md:px-10 md:py-32">
+    <section
+      id="how"
+      className="mx-auto max-w-content px-6 py-24 md:px-10 md:py-32"
+    >
       <Reveal asTrigger className="mx-auto max-w-2xl text-center">
-        <h2 className="rise mt-4 font-serif text-4xl font-semibold leading-[1.05] text-forest md:text-5xl" style={rd(90)}>
+        <h2
+          className="rise mt-4 font-serif text-4xl font-semibold leading-[1.05] text-forest md:text-5xl"
+          style={rd(90)}
+        >
           How it works
         </h2>
-        <p className="rise mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-forest/60" style={rd(180)}>
-          No endless swiping. No dry chats. Just smart matches and a great night out.
+        <p
+          className="rise mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-forest/60"
+          style={rd(180)}
+        >
+          We book the venue, and bring a live host. 3 or more matches including
+          you and your match just show up and get ready for battle.
         </p>
       </Reveal>
 
       <div className="mt-16 flex flex-col items-center gap-7 md:mt-24 md:flex-row md:items-start md:justify-center md:gap-0">
         {STEPS.map((s, i) => (
-          <Reveal key={s.num} delay={i * 120} className={`w-full max-w-sm md:w-[19rem] ${s.wrap}`}>
+          <Reveal
+            key={s.num}
+            delay={i * 120}
+            className={`w-full max-w-sm md:w-[19rem] ${s.wrap}`}
+          >
             <Card step={s} />
           </Reveal>
         ))}
@@ -122,8 +142,12 @@ function Card({ step: s }: { step: Step }) {
         <p className="text-xs font-semibold uppercase tracking-widest text-sage">
           Step {s.num} · {s.step}
         </p>
-        <h3 className="mt-2 font-serif text-[24px] font-semibold leading-tight text-forest">{s.title}</h3>
-        <p className="mt-2 text-[14px] leading-relaxed text-forest/65">{s.body}</p>
+        <h3 className="mt-2 font-serif text-[24px] font-semibold leading-tight text-forest">
+          {s.title}
+        </h3>
+        <p className="mt-2 text-[14px] leading-relaxed text-forest/65">
+          {s.body}
+        </p>
       </div>
     </article>
   );
