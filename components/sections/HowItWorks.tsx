@@ -51,7 +51,7 @@ const STEPS: Step[] = [
     num: "03",
     step: "The Night",
     title: "Show up and play",
-    body: "We book the venue, and bring a live host. 3 or more matches including you and your match just show up and get ready for battle.",
+    body: "Board Games! Battle alongside your match against other matches.",
     icon: <PartyPopper strokeWidth={1.5} className="h-6 w-6" />,
     phone: <NightMini />,
     card: "-rotate-2 md:-rotate-[5deg]",
