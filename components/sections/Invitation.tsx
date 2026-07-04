@@ -19,7 +19,6 @@ export default function Invitation() {
             fill="none"
           >
             <path d="M2 38 C 60 2, 140 2, 198 38" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="100" cy="9" r="2.5" fill="currentColor" />
           </svg>
 
           <p className="rise eyebrow" style={rd(80)}>
@@ -29,10 +28,10 @@ export default function Invitation() {
             className="rise mx-auto mt-5 max-w-2xl font-serif text-4xl font-semibold leading-[1.03] text-forest md:text-6xl"
             style={rd(160)}
           >
-            Reclaim your <span className="italic text-terracotta">evening</span> energy.
+            Ready to lock in your <span className="italic text-terracotta"> Player 2</span>?
           </h2>
           <p className="rise mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-forest/60 md:text-lg" style={rd(240)}>
-            No catalogs. No endless scrolling. Just smart matches and hosted nights out.
+            No endless scrolling. No awkward first dates. Just smart matches and hosted game nights.
           </p>
 
           <div className="rise mx-auto mt-10 max-w-lg text-left" style={rd(340)}>

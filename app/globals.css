@@ -121,6 +121,8 @@
   .animate-deplete,
   .animate-roll,
   .animate-hop,
+  .animate-bar-fill,
+  .animate-pop-loop,
   .animate-spin {
     animation: none !important;
   }

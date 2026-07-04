@@ -109,6 +109,20 @@ const config: Config = {
           "50%": { transform: "translate(5px, 0)" },
           "75%": { transform: "translate(2px, -10px)" },
         },
+        // A meter filling from empty, holding, then resetting — loops forever.
+        // Its resting (un-animated) state is full, so it degrades gracefully.
+        "bar-fill": {
+          "0%": { transform: "scaleX(0)" },
+          "40%": { transform: "scaleX(1)" },
+          "85%": { transform: "scaleX(1)" },
+          "100%": { transform: "scaleX(0)" },
+        },
+        // A chip/badge popping in, holding, then out — loops. Resting state visible.
+        "pop-loop": {
+          "0%, 8%": { opacity: "0", transform: "scale(0.6)" },
+          "20%, 78%": { opacity: "1", transform: "scale(1)" },
+          "92%, 100%": { opacity: "0", transform: "scale(0.6)" },
+        },
       },
       animation: {
         "float-up": "float-up 0.9s cubic-bezier(0.22,1,0.36,1) both",
@@ -122,6 +136,8 @@ const config: Config = {
         deplete: "deplete 2.2s linear infinite",
         roll: "roll 4.5s cubic-bezier(0.5,0,0.2,1) infinite",
         hop: "hop 3.2s ease-in-out infinite",
+        "bar-fill": "bar-fill 3s ease-in-out infinite",
+        "pop-loop": "pop-loop 3.4s ease-in-out infinite",
       },
     },
   },
