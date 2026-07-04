@@ -89,7 +89,7 @@ export default function InviteForm({
             placeholder={isPhone ? "Enter your mobile number" : "Enter your email"}
             aria-label={isPhone ? "Mobile number" : "Email address"}
             aria-invalid={error}
-            className="w-full bg-transparent text-base outline-none"
+            className="w-full bg-transparent text-base outline-none py-2"
           />
         </div>
         <button

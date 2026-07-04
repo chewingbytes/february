@@ -16,6 +16,10 @@ import { useEffect, useRef, useState } from "react";
  *
  * `asTrigger` renders no fade of its own — it only toggles `is-visible`, letting
  * `.rise` children cascade in for a natural, staggered entrance.
+ *
+ * `immediateOnMobile` plays the entrance right away on load below `md` instead of
+ * waiting to scroll into view — the animation still runs (unlike `staticOnMobile`,
+ * which just shows the content with no motion).
  */
 export default function Reveal({
   children,
@@ -25,6 +29,7 @@ export default function Reveal({
   rootMargin = "0px 0px -8% 0px",
   staticOnMobile = false,
   asTrigger = false,
+  immediateOnMobile = false,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -33,6 +38,7 @@ export default function Reveal({
   rootMargin?: string; // shrink the bottom to trigger later (more in view)
   staticOnMobile?: boolean;
   asTrigger?: boolean;
+  immediateOnMobile?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -40,6 +46,13 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // On mobile, optionally animate straight away on load rather than on scroll.
+    // A short delay lets the hidden initial frame paint so the transition runs.
+    if (immediateOnMobile && window.matchMedia("(max-width: 767px)").matches) {
+      const t = window.setTimeout(() => setVisible(true), 60);
+      return () => window.clearTimeout(t);
+    }
 
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -53,7 +66,7 @@ export default function Reveal({
 
     io.observe(el);
     return () => io.disconnect();
-  }, [threshold, rootMargin]);
+  }, [threshold, rootMargin, immediateOnMobile]);
 
   const classes = [
     asTrigger ? "" : "reveal",

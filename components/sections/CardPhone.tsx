@@ -9,8 +9,9 @@ export function CardPhone({ children }: { children: React.ReactNode }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-3 z-0 flex animate-bob justify-center" aria-hidden>
       <div className="[perspective:1000px]">
-        {/* the tilt — gently straightens toward the viewer when the card is hovered */}
-        <div className="mt-2 [transform-style:preserve-3d] [transform:rotateX(7deg)_rotateY(-13deg)_rotateZ(-5deg)] transition-transform duration-700 ease-botanical group-hover/card:[transform:rotateX(3deg)_rotateY(-7deg)_rotateZ(-2deg)]">
+        {/* the tilt — gently straightens toward the viewer when the card is
+            hovered (desktop) or tapped active (mobile) */}
+        <div className="mt-2 [transform-style:preserve-3d] [transform:rotateX(7deg)_rotateY(-13deg)_rotateZ(-5deg)] transition-transform duration-700 ease-botanical group-hover/card:[transform:rotateX(3deg)_rotateY(-7deg)_rotateZ(-2deg)] group-data-[active=true]/card:[transform:rotateX(3deg)_rotateY(-7deg)_rotateZ(-2deg)]">
           <PhoneShell>{children}</PhoneShell>
         </div>
       </div>

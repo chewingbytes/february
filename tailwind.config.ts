@@ -10,6 +10,11 @@ const config: Config = {
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
   ],
+  // Only apply `hover:` styles on devices that truly hover (mouse), so a tap on
+  // touch screens doesn't get "stuck" in the hovered state.
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { SlidersHorizontal, Gamepad2, PartyPopper } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import { CardPhone, QuizMini, SparkMini, NightMini } from "@/components/sections/CardPhone";
@@ -42,7 +45,7 @@ const STEPS: Step[] = [
     num: "03",
     step: "The Night",
     title: "Show up and play",
-    body: "We curate perfect connections, book the venue, and bring a live host. You just show up with your match.",
+    body: "We book the venue, and bring a live host. 3 or more matches including you and your match just show up and get ready for battle.",
     icon: <PartyPopper strokeWidth={1.5} className="h-6 w-6" />,
     phone: <NightMini />,
     card: "-rotate-2 md:-rotate-[5deg]",
@@ -71,42 +74,57 @@ export default function HowItWorks() {
       <div className="mt-16 flex flex-col items-center gap-7 md:mt-24 md:flex-row md:items-start md:justify-center md:gap-0">
         {STEPS.map((s, i) => (
           <Reveal key={s.num} delay={i * 120} className={`w-full max-w-sm md:w-[19rem] ${s.wrap}`}>
-            <article
-              className={`group/card relative flex min-h-[25rem] flex-col overflow-hidden rounded-[2rem] bg-card shadow-large ring-1 ring-stone/70 transition-all duration-500 ease-botanical hover:-translate-y-2 hover:rotate-0 hover:shadow-bloom hover:ring-sage/40 md:min-h-[27rem] ${s.card}`}
-            >
-              {/* the tilted phone, playing this step, in the background */}
-              <CardPhone>{s.phone}</CardPhone>
-
-              {/* fade so the copy stays crisp over the screen */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-t from-card via-card/80 to-transparent"
-              />
-
-              {/* floating icon chip */}
-              <span className="absolute left-6 top-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-card text-sage shadow-soft ring-1 ring-sage/20">
-                {s.icon}
-              </span>
-              {/* editorial step numeral */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute right-6 top-3 z-10 font-serif text-6xl font-semibold text-forest/[0.06]"
-              >
-                {s.num}
-              </span>
-
-              {/* copy, anchored to the bottom over the fade */}
-              <div className="relative z-10 mt-auto p-7">
-                <p className="text-xs font-semibold uppercase tracking-widest text-sage">
-                  Step {s.num} · {s.step}
-                </p>
-                <h3 className="mt-2 font-serif text-[24px] font-semibold leading-tight text-forest">{s.title}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-forest/65">{s.body}</p>
-              </div>
-            </article>
+            <Card step={s} />
           </Reveal>
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * A single step card. The "raised" look is driven by both `:hover` (desktop) and
+ * a tap-toggled `data-active` flag (mobile) — so a tap flips it and a second tap
+ * flips it back. `hoverOnlyWhenSupported` (tailwind config) keeps `:hover` from
+ * sticking on touch screens, so the two never fight.
+ */
+function Card({ step: s }: { step: Step }) {
+  const [active, setActive] = useState(false);
+  return (
+    <article
+      data-active={active ? "true" : "false"}
+      onClick={() => setActive((a) => !a)}
+      className={`group/card relative flex min-h-[25rem] cursor-pointer select-none flex-col overflow-hidden rounded-[2rem] bg-card shadow-large ring-1 ring-stone/70 transition-all duration-500 ease-botanical hover:-translate-y-2 hover:rotate-0 hover:shadow-bloom hover:ring-sage/40 data-[active=true]:-translate-y-2 data-[active=true]:rotate-0 data-[active=true]:shadow-bloom data-[active=true]:ring-sage/40 md:min-h-[27rem] ${s.card}`}
+    >
+      {/* the tilted phone, playing this step, in the background */}
+      <CardPhone>{s.phone}</CardPhone>
+
+      {/* fade so the copy stays crisp over the screen */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-t from-card via-card/80 to-transparent"
+      />
+
+      {/* floating icon chip */}
+      <span className="absolute left-6 top-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-card text-sage shadow-soft ring-1 ring-sage/20">
+        {s.icon}
+      </span>
+      {/* editorial step numeral */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-6 top-3 z-10 font-serif text-6xl font-semibold text-forest/[0.06]"
+      >
+        {s.num}
+      </span>
+
+      {/* copy, anchored to the bottom over the fade */}
+      <div className="relative z-10 mt-auto p-7">
+        <p className="text-xs font-semibold uppercase tracking-widest text-sage">
+          Step {s.num} · {s.step}
+        </p>
+        <h3 className="mt-2 font-serif text-[24px] font-semibold leading-tight text-forest">{s.title}</h3>
+        <p className="mt-2 text-[14px] leading-relaxed text-forest/65">{s.body}</p>
+      </div>
+    </article>
   );
 }

@@ -117,9 +117,11 @@ export default function Hero() {
       </div>
 
       {/* Famous quote — a band below the full-height hero on desktop; sits below
-          the CTA on mobile. Unveils itself smoothly left-to-right on scroll. */}
+          the CTA on mobile. Word-by-word entrance: on scroll for desktop, but
+          immediately on load for mobile (where it can sit high on first paint). */}
       <Reveal
         asTrigger
+        immediateOnMobile
         rootMargin="0px 0px -22% 0px"
         className="px-6 py-14 text-center md:mt-[20vh] md:px-10 md:py-16"
       >
