@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 const links = [
   { label: "How It Works", href: "#how" },
   { label: "The Host", href: "#host" },
+  { label: "This Saturday", href: "#pilot" },
 ];
 
 export default function Nav() {
@@ -33,7 +34,7 @@ export default function Nav() {
         <a href="#top" className="flex items-center" aria-label="february.place home">
           <Image
             src="/actuallogo.png"
-            alt="february.place"
+            alt="player2.place"
             width={40}
             height={40}
             priority
@@ -55,14 +56,14 @@ export default function Nav() {
             </a>
           ))}
           <a
-            href="#request"
+            href="/apply"
             className={`inline-flex h-10 items-center rounded-full px-5 text-xs font-medium uppercase tracking-widest transition-all duration-300 ${
               scrolled
                 ? "bg-forest text-background hover:bg-terracotta"
                 : "border border-background/60 text-background hover:bg-background hover:text-forest"
             }`}
           >
-            Request Invitation
+            Join Now
           </a>
         </div>
 
@@ -90,8 +91,8 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
-          <a href="#request" onClick={() => setOpen(false)} className="btn-primary mt-8 w-full">
-            Request Invitation
+          <a href="#pilot" onClick={() => setOpen(false)} className="btn-primary mt-8 w-full">
+            Join Now
           </a>
         </div>
       </div>

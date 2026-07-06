@@ -5,14 +5,19 @@ import Reveal from "@/components/Reveal";
 const rd = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as React.CSSProperties;
 
 const NEXAPOD_URL = "https://nexapod.events/";
+const OOOHCLUB_URL = "https://www.instagram.com/ooohclub.sg/";
+
+// Shared styling for the inline blush links in Chloe's bio.
+const linkClass =
+  "underline decoration-blush/40 underline-offset-4 transition-colors hover:text-background hover:decoration-background/60";
 
 /**
  * Section 6 — the launch host. A full-width forest block: a collage of Chloe's
  * event photography on one side, her introduction on the other.
  *
- * Chloe (our launch partner, who runs the Nexapod events agency) will supply her
- * own fuller bio later — until then we keep the copy to the essentials and avoid
- * inventing figures. Event tiles: two.jpg / three.jpg are square, one.jpg is 4:3.
+ * Chloe is our launch partner — founder of the Nexapod events agency and a host
+ * at ooohclub — and runs the pilot night. Event tiles: two.jpg / three.jpg are
+ * square, one.jpg is 4:3.
  */
 
 // Photos from Chloe's past nights, paired with the tile they fill in the collage.
@@ -89,22 +94,31 @@ export default function Curator() {
           <h2 className="rise mt-4 font-serif text-4xl font-semibold leading-[1.05] md:text-5xl" style={rd(100)}>
             Meet <span className="italic text-blush">Chloe</span>, your professional wingwoman.
           </h2>
-          <p className="rise mt-6 text-[15px] leading-relaxed text-background/70" style={rd(200)}>
-            Chloe runs{" "}
-            <a
-              href={NEXAPOD_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-blush underline decoration-blush/40 underline-offset-4 transition-colors hover:text-background hover:decoration-background/60"
-            >
+          <p className="rise mt-4 text-sm font-medium leading-relaxed text-blush/90" style={rd(160)}>
+            Founder of{" "}
+            <a href={NEXAPOD_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
               Nexapod
             </a>
-            , a full-service event management agency in Singapore.
+            , Host at{" "}
+            <a href={OOOHCLUB_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+              Ooohclub.sg
+            </a>{" "}
+            &amp; Official Launch Partner
+          </p>
+          <p className="rise mt-6 text-[15px] leading-relaxed text-background/70" style={rd(220)}>
+            Chloe is your buffer against awkward first-date silence. As the
+            founder of Nexapod and a veteran host at ooohclub, she has spent years
+            mastering crowd dynamics and running high-energy community events
+            across Singapore.
+          </p>
+          <p className="rise mt-4 text-[15px] leading-relaxed text-background/70" style={rd(300)}>
+            For our pilot night, she&rsquo;s completely taking the wheel, so you don&rsquo;t have to worry about making forced
+            small talk. Show up with your match, and she will drop your duo right into action.
           </p>
           {/* <p className="rise mt-4 text-sm italic leading-relaxed text-background/45" style={rd(280)}>
             A fuller introduction from Chloe is on the way.
           </p> */}
-          <a
+          {/* <a
             href={NEXAPOD_URL}
             target="_blank"
             rel="noopener noreferrer"
@@ -113,7 +127,7 @@ export default function Curator() {
           >
             Visit Nexapod
             <ArrowUpRight strokeWidth={1.75} className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
+          </a> */}
         </Reveal>
       </div>
     </section>

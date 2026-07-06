@@ -53,7 +53,7 @@ export default function Hero() {
         <div className="absolute inset-0 z-10 grid place-items-center px-8 md:hidden">
           <h1 className="animate-float-up w-full">
             <Image
-              src="/transparent-background-logo.png"
+              src="/transparentplayer2logo.png"
               alt="february.place"
               width={2000}
               height={2000}
@@ -68,7 +68,7 @@ export default function Hero() {
           <div className="flex flex-1 items-center justify-center px-4">
             <h1 className="animate-float-up">
               <Image
-                src="/transparent-background-logo.png"
+                src="/transparentplayer2logo.png"
                 alt="february.place"
                 width={2000}
                 height={2000}
@@ -86,11 +86,11 @@ export default function Hero() {
                 {LEDE}
               </p>
               <a
-                href="#request"
+                href="#pilot"
                 className="animate-float-up group inline-flex shrink-0 items-center gap-2 rounded-full border border-background/50 px-6 py-3 text-xs font-medium uppercase tracking-widest text-background transition-colors duration-300 hover:border-background hover:bg-background hover:text-forest"
                 style={{ animationDelay: "200ms" }}
               >
-                Request an invitation
+                Join this Saturday
                 <ArrowRight strokeWidth={1.75} className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </a>
             </div>
@@ -107,11 +107,11 @@ export default function Hero() {
           {LEDE}
         </p>
         <a
-          href="#request"
+          href="#pilot"
           className="animate-float-up btn-primary mt-6 inline-flex h-12 items-center gap-2 px-7"
           style={{ animationDelay: "220ms" }}
         >
-          Request an invitation
+          Join this Saturday
           <ArrowRight strokeWidth={1.75} className="h-4 w-4" />
         </a>
       </div>
