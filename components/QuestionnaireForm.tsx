@@ -16,9 +16,9 @@ import {
  * The pilot-event application — a one-question-at-a-time wizard that writes a
  * row to the Supabase `questionnaire` table. Two hard filters short-circuit to a
  * terminal screen instead of finishing:
- *   • Q3 "not available Saturday"  → the "next event" screen (captures WhatsApp).
+ *   • Q3 "not available Saturday"  → the "next event" screen (captures Telegram).
  *   • Q4 "just casual / networking" → a polite decline.
- * Everything else flows through to WhatsApp and submits as a qualified lead.
+ * Everything else collects a Telegram username and submits as a qualified lead.
  *
  * The founder does the actual pairing by hand on Thursday (age gaps, matched
  * values, energy balance) — this only collects clean, structured answers.
@@ -33,7 +33,7 @@ type Question = {
   help?: string;
 } & (
   | { kind: "choice"; options: Choice[] }
-  | { kind: "number" | "text" | "phone"; placeholder: string }
+  | { kind: "number" | "text" | "telegram"; placeholder: string }
 );
 
 const QUESTIONS: Question[] = [
@@ -129,16 +129,32 @@ const QUESTIONS: Question[] = [
     placeholder: "Your one dealbreaker",
   },
   {
-    id: "whatsapp",
+    id: "telegram",
     part: "Almost there",
-    kind: "phone",
-    q: "Drop your WhatsApp number.",
-    help: "If you're in, we will drop you a message. Singapore numbers only.",
-    placeholder: "mobile number",
+    kind: "telegram",
+    q: "What's your Telegram?",
+    help: "If it's a match, we'll message you the details before Saturday.",
+    placeholder: "username",
   },
 ];
 
 const TOTAL = QUESTIONS.length;
+
+// Telegram usernames: 5–32 chars, letters, numbers and underscores.
+const TG_HANDLE = /^[a-zA-Z0-9_]{5,32}$/;
+
+// Normalise whatever the applicant types into a clean "@username" — also copes
+// with a pasted t.me link or a leading @ — or null when empty.
+function normalizeHandle(raw?: string): string | null {
+  if (!raw) return null;
+  const h = raw
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, "")
+    .replace(/\/+$/, "")
+    .replace(/^@+/, "")
+    .replace(/\s+/g, "");
+  return h ? `@${h}` : null;
+}
 
 type SaveState = "idle" | "saving" | "error" | "done";
 
@@ -171,7 +187,7 @@ export default function QuestionnaireForm() {
       energy_level: answers.energy_level ?? null,
       competitiveness: answers.competitiveness ?? null,
       dealbreaker: answers.dealbreaker?.trim() || null,
-      whatsapp: answers.whatsapp?.trim() ? `+65 ${answers.whatsapp.trim()}` : null,
+      telegram: normalizeHandle(answers.telegram),
     };
   }
 
@@ -196,7 +212,7 @@ export default function QuestionnaireForm() {
     window.setTimeout(() => setStep((s) => Math.min(s + 1, TOTAL - 1)), 200);
   }
 
-  // Validate + advance from a typed answer (age / dealbreaker / whatsapp).
+  // Validate + advance from a typed answer (age / dealbreaker / telegram).
   function next() {
     const v = value.trim();
     if (question.kind === "number") {
@@ -208,8 +224,12 @@ export default function QuestionnaireForm() {
     if (question.kind === "text" && v.length < 2) {
       return setError("A word or two is plenty — just fill this in.");
     }
-    if (question.kind === "phone" && !/^[0-9]{8}$/.test(v.replace(/\s+/g, ""))) {
-      return setError("Please enter a valid Singapore number.");
+    if (question.kind === "telegram") {
+      if (!v) return setError("Please enter your Telegram username.");
+      const handle = (normalizeHandle(v) ?? "").replace(/^@/, "");
+      if (!TG_HANDLE.test(handle)) {
+        return setError("Please enter a valid Telegram username.");
+      }
     }
 
     if (step === TOTAL - 1) {
@@ -245,7 +265,7 @@ export default function QuestionnaireForm() {
         saveState={saveState}
         onRetry={() => save("qualified")}
         answers={answers}
-        setWhatsApp={(v) => set("whatsapp", v)}
+        setTelegram={(v) => set("telegram", v)}
         onWaitlist={() => save("waitlist_next")}
       />
     );
@@ -317,20 +337,21 @@ export default function QuestionnaireForm() {
             }}
           >
             <div className="flex h-14 items-center gap-2 rounded-2xl border border-stone bg-card-clay px-5 transition-colors focus-within:border-sage">
-              {question.kind === "phone" && (
-                <span className="select-none text-base font-medium text-forest/60">+65</span>
+              {question.kind === "telegram" && (
+                <span className="select-none text-base font-medium text-forest/60">@</span>
               )}
               <input
                 autoFocus
-                type={question.kind === "number" ? "number" : question.kind === "phone" ? "tel" : "text"}
-                inputMode={
-                  question.kind === "number" ? "numeric" : question.kind === "phone" ? "tel" : "text"
-                }
+                type={question.kind === "number" ? "number" : "text"}
+                inputMode={question.kind === "number" ? "numeric" : "text"}
+                autoCapitalize={question.kind === "telegram" ? "none" : undefined}
+                autoCorrect={question.kind === "telegram" ? "off" : undefined}
+                spellCheck={question.kind === "telegram" ? false : undefined}
                 value={value}
                 onChange={(e) => set(question.id, e.target.value)}
                 placeholder={question.placeholder}
                 aria-label={question.q}
-                maxLength={question.kind === "text" ? 80 : question.kind === "phone" ? 11 : 3}
+                maxLength={question.kind === "text" ? 80 : question.kind === "telegram" ? 32 : 3}
                 className="w-full bg-transparent text-base text-forest outline-none placeholder:text-forest/35"
               />
             </div>
@@ -377,14 +398,14 @@ function Terminal({
   saveState,
   onRetry,
   answers,
-  setWhatsApp,
+  setTelegram,
   onWaitlist,
 }: {
   kind: HardFail | "qualified";
   saveState: SaveState;
   onRetry: () => void;
   answers: Record<string, string>;
-  setWhatsApp: (v: string) => void;
+  setTelegram: (v: string) => void;
   onWaitlist: () => void;
 }) {
   if (kind === "qualified") {
@@ -415,10 +436,8 @@ function Terminal({
         ) : (
           <>
             <p className="text-[15px] leading-relaxed text-forest/60">
-              We review every application by hand and pair matches on Thursday. If it&rsquo;s a
-              fit, your PayNow confirmation lands on{" "}
-              <span className="font-medium text-forest">WhatsApp</span> before Saturday. Keep an
-              eye on it.
+              We review every application by hand and pair matches on Thursday. If it&rsquo;s a fit, we&rsquo;ll message you on
+              <span className="font-medium text-forest"> Telegram</span> before Saturday.
             </p>
             <HomeLink />
           </>
@@ -443,9 +462,9 @@ function Terminal({
     );
   }
 
-  // unavailable → capture a number for the next night
-  const wa = answers.whatsapp ?? "";
-  const valid = /^[0-9]{8}$/.test(wa.replace(/\s+/g, ""));
+  // unavailable → capture a username for the next night
+  const tg = answers.telegram ?? "";
+  const valid = TG_HANDLE.test((normalizeHandle(tg) ?? "").replace(/^@/, ""));
   return (
     <Shell
       icon={<CalendarClock strokeWidth={1.5} className="h-7 w-7" />}
@@ -456,7 +475,7 @@ function Terminal({
         <>
           <p className="text-[15px] leading-relaxed text-forest/60">
             Got it — you&rsquo;re on the list for the next Player 2 game night. We&rsquo;ll reach
-            out on WhatsApp with the date.
+            out on Telegram with the date.
           </p>
           <HomeLink />
         </>
@@ -464,18 +483,21 @@ function Terminal({
         <>
           <p className="text-[15px] leading-relaxed text-forest/60">
             No worries — this Saturday won&rsquo;t work, but we run these regularly. Drop your
-            WhatsApp and we&rsquo;ll invite you to the next one.
+            Telegram and we&rsquo;ll invite you to the next one.
           </p>
           <div className="mt-6 flex h-14 items-center gap-2 rounded-2xl border border-stone bg-card-clay px-5 transition-colors focus-within:border-sage">
-            <span className="select-none text-base font-medium text-forest/60">+65</span>
+            <span className="select-none text-base font-medium text-forest/60">@</span>
             <input
-              type="tel"
-              inputMode="tel"
-              value={wa}
-              onChange={(e) => setWhatsApp(e.target.value)}
-              placeholder="mobile number"
-              aria-label="WhatsApp number"
-              maxLength={11}
+              type="text"
+              inputMode="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              value={tg}
+              onChange={(e) => setTelegram(e.target.value)}
+              placeholder="username"
+              aria-label="Telegram username"
+              maxLength={32}
               className="w-full bg-transparent text-base text-forest outline-none placeholder:text-forest/35"
             />
           </div>
