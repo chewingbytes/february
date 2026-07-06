@@ -39,7 +39,7 @@ export default function Invitation() {
             style={rd(160)}
           >
             Ready to lock in your{" "}
-            <span className="italic text-terracotta"> Player 2</span>?
+            <span className="italic text-terracotta"> Player 2?</span>
           </h2>
           <p
             className="rise mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-forest/60 md:text-lg"
