@@ -133,7 +133,7 @@ const QUESTIONS: Question[] = [
     part: "Almost there",
     kind: "phone",
     q: "Drop your WhatsApp number.",
-    help: "If you're in, we send your PayNow confirmation here — not email. Singapore numbers only.",
+    help: "If you're in, we will drop you a message. Singapore numbers only.",
     placeholder: "8-digit mobile number",
   },
 ];
@@ -435,7 +435,7 @@ function Terminal({
         title="Maybe not this one."
       >
         <p className="text-[15px] leading-relaxed text-forest/60">
-          February&rsquo;s first night is built for people chasing something real. No hard
+          Player 2 &rsquo;s first night is built for people chasing something real. No hard
           feelings at all — if that changes, we&rsquo;d love to have you at a future event.
         </p>
         <HomeLink />
@@ -455,7 +455,7 @@ function Terminal({
       {saveState === "done" ? (
         <>
           <p className="text-[15px] leading-relaxed text-forest/60">
-            Got it — you&rsquo;re on the list for the next February game night. We&rsquo;ll reach
+            Got it — you&rsquo;re on the list for the next Player 2 game night. We&rsquo;ll reach
             out on WhatsApp with the date.
           </p>
           <HomeLink />
@@ -543,7 +543,7 @@ function HomeLink() {
       className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-sage transition-colors hover:text-terracotta"
     >
       <ArrowLeft strokeWidth={1.75} className="h-4 w-4" />
-      Back to february.place
+      Back to playertwo.place
     </Link>
   );
 }

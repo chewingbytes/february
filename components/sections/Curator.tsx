@@ -40,7 +40,7 @@ export default function Curator() {
             >
               <Image
                 src="/chloe_image.jpg"
-                alt="Chloe, February's launch host"
+                alt="Chloe, Player 2's launch host"
                 fill
                 sizes="(max-width: 768px) 45vw, 22vw"
                 className="object-cover transition-transform duration-700 ease-botanical group-hover:scale-105"

@@ -29,7 +29,7 @@ export default function Hero() {
       <div className="relative h-[60svh] min-h-[440px] w-full md:h-[100svh]">
         <Image
           src="/hero.jpg"
-          alt="A live host keeping the energy up at a February hosted game night in Singapore"
+          alt="A live host keeping the energy up at a Player 2 hosted game night in Singapore"
           fill
           priority
           sizes="100vw"
@@ -54,7 +54,7 @@ export default function Hero() {
           <h1 className="animate-float-up w-full">
             <Image
               src="/transparentplayer2logo.png"
-              alt="february.place"
+              alt="playertwo.place"
               width={2000}
               height={2000}
               priority
@@ -69,7 +69,7 @@ export default function Hero() {
             <h1 className="animate-float-up">
               <Image
                 src="/transparentplayer2logo.png"
-                alt="february.place"
+                alt="playertwo.place"
                 width={2000}
                 height={2000}
                 priority

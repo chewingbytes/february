@@ -19,9 +19,9 @@ const source = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "February — Hosted group dates in Singapore",
+  title: "Player 2 — Hosted group dates in Singapore",
   description:
-    "February pairs highly compatible people on deep psychology, skips the small talk with in-app minigames, and routes you into hosted group game nights with a live host. Private beta across Singapore.",
+    "Player 2 pairs highly compatible people on deep psychology, skips the small talk with in-app minigames, and routes you into hosted group game nights with a live host. Private beta across Singapore.",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

@@ -4,9 +4,9 @@ import Image from "next/image";
 import QuestionnaireForm from "@/components/QuestionnaireForm";
 
 export const metadata: Metadata = {
-  title: "Apply · February Pilot Game Night — Sat, July 11",
+  title: "Apply · Player2 Pilot Game Night — Sat, July 11",
   description:
-    "Apply for February's first hosted game night in central Singapore, Saturday July 11. A few quick questions so we can pair you with your match.",
+    "Apply for Player2's first hosted game night in central Singapore, Saturday July 11. A few quick questions so we can pair you with your match.",
 };
 
 /**
@@ -19,8 +19,8 @@ export default function ApplyPage() {
     <main className="flex min-h-screen flex-col items-center px-5 py-8 md:py-12">
       {/* slim header */}
       <div className="flex w-full max-w-xl items-center justify-between">
-        <Link href="/" className="flex items-center gap-2" aria-label="february.place home">
-          <Image src="/actuallogo.png" alt="february.place" width={36} height={36} className="h-9 w-9 rounded-sm" />
+        <Link href="/" className="flex items-center gap-2" aria-label="playertwo.place home">
+          <Image src="/actuallogo.png" alt="playertwo.place" width={36} height={36} className="h-9 w-9 rounded-sm" />
         </Link>
         <span className="inline-flex items-center gap-2 rounded-full border border-stone bg-card px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-widest text-forest/60">
           <span className="h-1.5 w-1.5 rounded-full bg-terracotta" />

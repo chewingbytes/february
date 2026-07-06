@@ -31,7 +31,7 @@ export default function Nav() {
             : "border border-transparent bg-transparent text-background"
         }`}
       >
-        <a href="#top" className="flex items-center" aria-label="february.place home">
+        <a href="#top" className="flex items-center" aria-label="playertwo.place home">
           <Image
             src="/actuallogo.png"
             alt="player2.place"
