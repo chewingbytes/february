@@ -91,7 +91,7 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
-          <a href="#pilot" onClick={() => setOpen(false)} className="btn-primary mt-8 w-full">
+          <a href="/apply" onClick={() => setOpen(false)} className="btn-primary mt-8 w-full">
             Join Now
           </a>
         </div>
