@@ -103,7 +103,7 @@ export default function InviteForm({
       <p className={`mt-4 text-xs tracking-wide transition-colors ${error ? "text-terracotta" : helper}`}>
         {error
           ? isPhone
-            ? "Please enter a valid 8-digit Singapore mobile number."
+            ? "Please enter a valid Singapore mobile number."
             : "Please enter a valid email address."
           : isPhone
             ? "We text a single invitation link. No spam, no calls."

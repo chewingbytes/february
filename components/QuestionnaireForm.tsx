@@ -134,7 +134,7 @@ const QUESTIONS: Question[] = [
     kind: "phone",
     q: "Drop your WhatsApp number.",
     help: "If you're in, we will drop you a message. Singapore numbers only.",
-    placeholder: "8-digit mobile number",
+    placeholder: "mobile number",
   },
 ];
 
@@ -209,7 +209,7 @@ export default function QuestionnaireForm() {
       return setError("A word or two is plenty — just fill this in.");
     }
     if (question.kind === "phone" && !/^[0-9]{8}$/.test(v.replace(/\s+/g, ""))) {
-      return setError("Please enter a valid 8-digit Singapore number.");
+      return setError("Please enter a valid Singapore number.");
     }
 
     if (step === TOTAL - 1) {
@@ -473,7 +473,7 @@ function Terminal({
               inputMode="tel"
               value={wa}
               onChange={(e) => setWhatsApp(e.target.value)}
-              placeholder="8-digit mobile number"
+              placeholder="mobile number"
               aria-label="WhatsApp number"
               maxLength={11}
               className="w-full bg-transparent text-base text-forest outline-none placeholder:text-forest/35"
