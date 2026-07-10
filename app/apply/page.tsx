@@ -4,9 +4,9 @@ import Image from "next/image";
 import QuestionnaireForm from "@/components/QuestionnaireForm";
 
 export const metadata: Metadata = {
-  title: "Apply · Player2 Pilot Game Night — Sat, July 11",
+  title: "Apply · Player2 Game Night — Sat, July 18",
   description:
-    "Apply for Player2's first hosted game night in central Singapore, Saturday July 11. A few quick questions so we can pair you with your match.",
+    "Apply for Player2's first hosted game night in central Singapore, Saturday July 18. A few quick questions so we can pair you with your match.",
 };
 
 /**
@@ -24,7 +24,7 @@ export default function ApplyPage() {
         </Link>
         <span className="inline-flex items-center gap-2 rounded-full border border-stone bg-card px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-widest text-forest/60">
           <span className="h-1.5 w-1.5 rounded-full bg-terracotta" />
-          Pilot · Sat 11 Jul
+          Sat 18 Jul
         </span>
       </div>
 
@@ -36,7 +36,7 @@ export default function ApplyPage() {
       </div>
 
       <p className="max-w-xl text-center text-xs leading-relaxed text-forest/40">
-        Applications for this Saturday close Thursday. We review every one by hand.
+        Applications for 18th July close Thursday. We review every one by hand.
       </p>
     </main>
   );

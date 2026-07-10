@@ -59,8 +59,8 @@ const QUESTIONS: Question[] = [
     id: "available",
     part: "Logistics",
     kind: "choice",
-    q: "Are you free this Saturday evening, July 11, in central Singapore?",
-    help: "The pilot night is a fixed date — you'll need to be there in person.",
+    q: "Are you free this Saturday evening, July 18, in central Singapore?",
+    help: "The event night is a fixed date — you'll need to be there in person.",
     options: [
       { value: "yes", label: "Yes — lock me in.", sub: "I'm free Saturday evening." },
       {

@@ -112,7 +112,7 @@ export default function Curator() {
             across Singapore.
           </p>
           <p className="rise mt-4 text-[15px] leading-relaxed text-background/70" style={rd(300)}>
-            For our pilot night, she&rsquo;s completely taking the wheel, so you don&rsquo;t have to worry about making forced
+            For our game night, she&rsquo;s completely taking the wheel, so you don&rsquo;t have to worry about making forced
             small talk. Show up with your match, and she will drop your duo right into action.
           </p>
           {/* <p className="rise mt-4 text-sm italic leading-relaxed text-background/45" style={rd(280)}>

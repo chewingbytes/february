@@ -29,7 +29,7 @@ const DETAILS: Detail[] = [
   {
     icon: <CalendarDays strokeWidth={1.5} className="h-5 w-5" />,
     label: "When",
-    value: "Saturday, July 11",
+    value: "Saturday, July 18",
   },
   {
     icon: <Clock strokeWidth={1.5} className="h-5 w-5" />,
@@ -50,7 +50,7 @@ const DETAILS: Detail[] = [
   {
     icon: <DollarSign strokeWidth={1.5} className="h-5 w-5" />,
     label: "Price",
-    value: "It's our first pilot event, so we are sponsoring your spot and a free drink!",
+    value: "It's our first event, so we are sponsoring your spot and a free drink!",
   },
 ];
 
@@ -108,7 +108,7 @@ export default function PilotEvent() {
                   href="/apply"
                   className="group inline-flex h-14 items-center gap-2 rounded-full bg-terracotta px-8 text-sm font-medium uppercase tracking-widest text-background shadow-medium transition-colors duration-300 hover:bg-forest"
                 >
-                  Apply Now
+                  Apply Here
                   <ArrowRight
                     strokeWidth={1.75}
                     className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"

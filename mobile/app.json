@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Player 2",
+    "slug": "player2",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "playertwo",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "backgroundColor": "#F9F8F4",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.chewingbytes.player2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Player 2 uses your location to show game nights happening near you."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F9F8F4",
+        "foregroundImage": "./assets/icon.png"
+      },
+      "package": "com.chewingbytes.player2",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#F9F8F4"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}
