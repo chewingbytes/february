@@ -26,6 +26,7 @@ import {
 
 type HardFail = "unavailable" | "casual";
 type Choice = { value: string; label: string; sub?: string; hardFail?: HardFail };
+type MatchOption = { value: string; label: string };
 type Question = {
   id: string;
   part: string;
@@ -33,8 +34,129 @@ type Question = {
   help?: string;
 } & (
   | { kind: "choice"; options: Choice[] }
+  | { kind: "match"; options: MatchOption[] }
   | { kind: "number" | "text" | "telegram"; placeholder: string }
 );
+
+// OkCupid-style importance weights for the matching questions.
+const IMPORTANCE = [
+  { value: "irrelevant", label: "Irrelevant" },
+  { value: "a_little", label: "A Little" },
+  { value: "somewhat", label: "Somewhat" },
+  { value: "very", label: "Very" },
+] as const;
+type Importance = (typeof IMPORTANCE)[number]["value"];
+
+// Compatibility questions — each shown on a single page with three parts: your
+// own answer, the answers you'd accept from a partner, and how much it matters.
+// Value keys drive the UI; buildMatchAnswers() serialises them to the literal
+// question + answer text for the `match_answers` jsonb column.
+const MATCH_QUESTIONS: Question[] = [
+  {
+    id: "abstract",
+    part: "Mind & Soul",
+    kind: "match",
+    q: "Do you enjoy discussing abstract concepts, philosophy, or “what if” scenarios that have no real-world application?",
+    options: [
+      { value: "yes", label: "Yes, I find those conversations fascinating." },
+      { value: "no", label: "No, I prefer talking about concrete reality and practical matters." },
+    ],
+  },
+  {
+    id: "art_moved",
+    part: "Mind & Soul",
+    kind: "match",
+    q: "How often do you find yourself deeply moved by a piece of art, music, literature, or a beautiful view?",
+    options: [
+      { value: "often", label: "Often. I am very sensitive to art and beauty." },
+      { value: "rarely", label: "Rarely or never. I appreciate them, but they don't move me deeply." },
+    ],
+  },
+  {
+    id: "tidiness",
+    part: "Daily Life",
+    kind: "match",
+    q: "How neat and organized is your current living space?",
+    options: [
+      { value: "immaculate", label: "Immaculate. Everything has a proper place." },
+      { value: "average", label: "Average. There is some clutter, but it's generally clean." },
+      { value: "messy", label: "Messy. I clean only when I absolutely have to." },
+    ],
+  },
+  {
+    id: "punctuality",
+    part: "Daily Life",
+    kind: "match",
+    q: "If you make casual plans with a friend to meet at 7:00 PM, what time do you usually show up?",
+    options: [
+      { value: "on_time", label: "Early or exactly on time (6:50 - 7:00)." },
+      { value: "slightly_late", label: "Slightly late (7:05 - 7:15)." },
+      { value: "late", label: "Fashionably late / when I get there (7:20 or later)." },
+    ],
+  },
+  {
+    id: "solo_social",
+    part: "Social Style",
+    kind: "match",
+    q: "Would you attend a large social event, party, or networking mixer completely by yourself?",
+    options: [
+      { value: "sure", label: "Sure, I enjoy meeting new people on my own." },
+      { value: "reluctant", label: "Only if I absolutely had to, but I'd hate it." },
+      { value: "no", label: "No way. I need a wingman or a friend with me." },
+    ],
+  },
+  {
+    id: "leadership",
+    part: "Social Style",
+    kind: "match",
+    q: "In a group setting where a decision needs to be made, do you naturally take charge and speak up first?",
+    options: [
+      { value: "lead", label: "Yes, I tend to lead or express my opinion loudly." },
+      { value: "listen", label: "No, I prefer to listen first and follow the group consensus." },
+    ],
+  },
+  {
+    id: "trust",
+    part: "Connection",
+    kind: "match",
+    q: "When you meet someone new, what is your default assumption about their intentions?",
+    options: [
+      { value: "trusting", label: "I trust them automatically until they give me a reason not to." },
+      { value: "skeptical", label: "I am skeptical and cautious until they prove they are trustworthy." },
+    ],
+  },
+  {
+    id: "conflict",
+    part: "Connection",
+    kind: "match",
+    q: "During a minor disagreement with a partner, what is your primary goal?",
+    options: [
+      { value: "peace", label: "To keep the peace and find a compromise quickly, even if I give in a bit." },
+      { value: "debate", label: "To debate the point thoroughly and make sure the correct logic wins out." },
+    ],
+  },
+  {
+    id: "overthinking",
+    part: "Inner World",
+    kind: "match",
+    q: "How often do you find yourself overthinking past conversations or worrying about things that might go wrong in the future?",
+    options: [
+      { value: "constantly", label: "Constantly. My mind is always racing with worries." },
+      { value: "occasionally", label: "Occasionally, but I can shake it off." },
+      { value: "rarely", label: "Rarely. I live in the moment and rarely worry." },
+    ],
+  },
+  {
+    id: "mood",
+    part: "Inner World",
+    kind: "match",
+    q: "Does your mood fluctuate wildly throughout the day based on small events, or do you stay mostly even-keeled?",
+    options: [
+      { value: "fluctuates", label: "My mood changes a lot; I feel highs and lows intensely." },
+      { value: "steady", label: "I am very steady; my mood rarely changes drastically." },
+    ],
+  },
+];
 
 const QUESTIONS: Question[] = [
   {
@@ -128,6 +250,7 @@ const QUESTIONS: Question[] = [
     help: "Keep it brief — e.g. smoking, values, anything you can't look past.",
     placeholder: "Your one dealbreaker",
   },
+  ...MATCH_QUESTIONS,
   {
     id: "telegram",
     part: "Almost there",
@@ -164,18 +287,72 @@ export default function QuestionnaireForm() {
   const [terminal, setTerminal] = useState<HardFail | "qualified" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  // OkCupid-style matching answers: per question id → your own pick, the
+  // answers you'd accept from a partner, and how much it matters.
+  const [matchAnswers, setMatchAnswers] = useState<
+    Record<string, { self?: string; accept: string[]; weight?: Importance }>
+  >({});
   const casualSaved = useRef(false);
 
   const question = QUESTIONS[step];
   const value = answers[question.id] ?? "";
+  const match = matchAnswers[question.id];
 
   function set(id: string, v: string) {
     setAnswers((a) => ({ ...a, [id]: v }));
     if (error) setError(null);
   }
 
+  // Set your own answer or the importance weight on a matching question.
+  function updateMatch(
+    id: string,
+    patch: Partial<{ self: string; weight: Importance }>
+  ) {
+    setMatchAnswers((m) => {
+      const cur = m[id] ?? { accept: [] };
+      return { ...m, [id]: { ...cur, ...patch } };
+    });
+    if (error) setError(null);
+  }
+
+  // Toggle one accepted-from-partner answer on a matching question.
+  function toggleAccept(id: string, val: string) {
+    setMatchAnswers((m) => {
+      const cur = m[id] ?? { accept: [] };
+      const accept = cur.accept.includes(val)
+        ? cur.accept.filter((x) => x !== val)
+        : [...cur.accept, val];
+      return { ...m, [id]: { ...cur, accept } };
+    });
+    if (error) setError(null);
+  }
+
+  // Convert the internal value-keyed match answers into a legible object —
+  // keyed by the literal question, with the literal answer + importance text —
+  // so the DB row reads without needing a legend.
+  function buildMatchAnswers() {
+    const out: Record<
+      string,
+      { self: string; accept: string[]; weight: string }
+    > = {};
+    for (const q of MATCH_QUESTIONS) {
+      if (q.kind !== "match") continue;
+      const a = matchAnswers[q.id];
+      if (!a?.self) continue;
+      const label = (v: string) =>
+        q.options.find((o) => o.value === v)?.label ?? v;
+      out[q.q] = {
+        self: label(a.self),
+        accept: a.accept.map(label),
+        weight: IMPORTANCE.find((w) => w.value === a.weight)?.label ?? "",
+      };
+    }
+    return out;
+  }
+
   // Assemble the DB row from whatever we've collected so far.
   function buildRow(status: string) {
+    const matches = buildMatchAnswers();
     return {
       status,
       age: answers.age ? parseInt(answers.age, 10) : null,
@@ -188,6 +365,7 @@ export default function QuestionnaireForm() {
       competitiveness: answers.competitiveness ?? null,
       dealbreaker: answers.dealbreaker?.trim() || null,
       telegram: normalizeHandle(answers.telegram),
+      match_answers: Object.keys(matches).length ? matches : null,
     };
   }
 
@@ -230,6 +408,13 @@ export default function QuestionnaireForm() {
       if (!TG_HANDLE.test(handle)) {
         return setError("Please enter a valid Telegram username.");
       }
+    }
+    if (question.kind === "match") {
+      if (!match?.self) return setError("Pick your own answer first.");
+      if (!match.accept.length)
+        return setError("Choose at least one answer you'd accept from a partner.");
+      if (!match.weight)
+        return setError("Let us know how important this is to you.");
     }
 
     if (step === TOTAL - 1) {
@@ -328,6 +513,103 @@ export default function QuestionnaireForm() {
                 </button>
               );
             })}
+          </div>
+        ) : question.kind === "match" ? (
+          <div className="space-y-7">
+            {/* Part 1 — your own answer (single select) */}
+            <div>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-sage">
+                Your answer
+              </p>
+              <div className="space-y-2.5">
+                {question.options.map((o) => {
+                  const selected = match?.self === o.value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => updateMatch(question.id, { self: o.value })}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-200 ease-botanical ${
+                        selected
+                          ? "border-sage bg-sage/10 ring-1 ring-sage"
+                          : "border-stone bg-card-clay hover:border-sage/60 hover:bg-sage/5"
+                      }`}
+                    >
+                      <span
+                        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-colors ${
+                          selected ? "border-sage bg-sage text-background" : "border-stone text-transparent"
+                        }`}
+                      >
+                        <Check strokeWidth={3} className="h-3 w-3" />
+                      </span>
+                      <span className="text-[14px] font-medium text-forest">{o.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Part 2 — answers you'd accept from a partner (multi-select) */}
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-sage">
+                Answers you&rsquo;d accept from a partner
+              </p>
+              <p className="mb-3 mt-1 text-[13px] text-forest/45">
+                Choose all that work for you.
+              </p>
+              <div className="space-y-2.5">
+                {question.options.map((o) => {
+                  const on = match?.accept.includes(o.value) ?? false;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => toggleAccept(question.id, o.value)}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-200 ease-botanical ${
+                        on
+                          ? "border-terracotta bg-terracotta/10 ring-1 ring-terracotta"
+                          : "border-stone bg-card-clay hover:border-terracotta/50 hover:bg-terracotta/5"
+                      }`}
+                    >
+                      <span
+                        className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors ${
+                          on ? "border-terracotta bg-terracotta text-background" : "border-stone text-transparent"
+                        }`}
+                      >
+                        <Check strokeWidth={3} className="h-3 w-3" />
+                      </span>
+                      <span className="text-[14px] font-medium text-forest">{o.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Part 3 — how important is this to you */}
+            <div>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-sage">
+                How important is this to you?
+              </p>
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {IMPORTANCE.map((w) => {
+                  const on = match?.weight === w.value;
+                  return (
+                    <button
+                      key={w.value}
+                      type="button"
+                      onClick={() => updateMatch(question.id, { weight: w.value })}
+                      className={`rounded-xl border px-3 py-2.5 text-center text-[13px] font-medium transition-all duration-200 ease-botanical ${
+                        on
+                          ? "border-forest bg-forest text-background"
+                          : "border-stone bg-card-clay text-forest/70 hover:border-forest/40"
+                      }`}
+                    >
+                      {w.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         ) : (
           <form
