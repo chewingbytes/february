@@ -34,7 +34,6 @@
 }
 
 @layer components {
-  /* Pill buttons — the botanical signature */
   .btn {
     @apply inline-flex h-12 items-center justify-center rounded-full px-7
            text-sm font-medium uppercase tracking-widest
@@ -47,7 +46,6 @@
     @apply btn border border-sage bg-transparent text-sage hover:bg-sage/10;
   }
 
-  /* Underlined, calm inputs */
   .field {
     @apply w-full border-0 border-b border-stone bg-transparent px-1 py-3
            text-forest placeholder:text-forest/35
