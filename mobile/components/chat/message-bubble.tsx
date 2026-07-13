@@ -105,6 +105,45 @@ function EventInviteBubble({ msg, mine }: { msg: Message; mine: boolean }) {
   );
 }
 
+/**
+ * A game_result message: the little scorecard a finished minigame drops into
+ * the thread. "mine" = I was the one who played it.
+ */
+function GameResultBubble({ msg, mine }: { msg: Message; mine: boolean }) {
+  const meta = msg.meta;
+  return (
+    <View style={[inviteStyles.card, mine ? inviteStyles.mine : inviteStyles.theirs]}>
+      <View style={inviteStyles.headerRow}>
+        <View style={[inviteStyles.iconRing, { backgroundColor: T.sageA(0.15) }]}>
+          <Text style={{ fontSize: 14 }}>{meta?.emoji ?? "🎲"}</Text>
+        </View>
+        <Text style={[inviteStyles.eyebrow, { color: T.colors.sage }]}>
+          Minigame {mine ? "· you played" : "· they played"}
+        </Text>
+      </View>
+      <Text style={inviteStyles.title}>{meta?.game_title ?? "Minigame"}</Text>
+      <Text style={inviteStyles.meta}>{msg.content.replace(/^\S+\s/, "")}</Text>
+      {meta && meta.total > 0 && (
+        <View style={gameStyles.scoreRow}>
+          <View style={gameStyles.scoreTrack}>
+            <View
+              style={[
+                gameStyles.scoreFill,
+                { flex: Math.max(meta.score / meta.total, 0.04) },
+              ]}
+            />
+            <View style={{ flex: Math.max(1 - meta.score / meta.total, 0) }} />
+          </View>
+          <Text style={gameStyles.scoreText}>
+            {meta.score}/{meta.total}
+          </Text>
+        </View>
+      )}
+      <Text style={gameStyles.time}>{messageTime(msg.created_at)}</Text>
+    </View>
+  );
+}
+
 export function MessageBubble({
   msg,
   mine,
@@ -119,6 +158,14 @@ export function MessageBubble({
     return (
       <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
         <EventInviteBubble msg={msg} mine={mine} />
+      </View>
+    );
+  }
+
+  if (msg.kind === "game_result") {
+    return (
+      <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
+        <GameResultBubble msg={msg} mine={mine} />
       </View>
     );
   }
@@ -193,6 +240,40 @@ const styles = StyleSheet.create({
     color: T.whiteA(0.55),
   },
   timeTheirs: {
+    fontFamily: T.fonts.sans,
+    fontSize: 10.5,
+    color: T.forestA(0.4),
+  },
+});
+
+const gameStyles = StyleSheet.create({
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
+  scoreTrack: {
+    flex: 1,
+    flexDirection: "row",
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.colors.stone,
+    overflow: "hidden",
+  },
+  scoreFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.colors.sage,
+  },
+  scoreText: {
+    fontFamily: T.fonts.sansBold,
+    fontSize: 11.5,
+    color: T.colors.sage,
+  },
+  time: {
+    marginTop: 10,
+    alignSelf: "flex-end",
     fontFamily: T.fonts.sans,
     fontSize: 10.5,
     color: T.forestA(0.4),

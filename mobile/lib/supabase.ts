@@ -20,6 +20,10 @@ export const TABLES = {
   messages: "p2_messages",
   events: "p2_events",
   eventJoins: "p2_event_joins",
+  games: "p2_games",
+  gamePlays: "p2_game_plays",
+  /** The website quiz table — NOT p2-prefixed; admin-only reads. */
+  questionnaire: "questionnaire",
 } as const;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

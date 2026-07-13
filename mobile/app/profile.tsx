@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { Redirect, useRouter } from "expo-router";
-import { Check, LogOut, X } from "lucide-react-native";
+import { Check, ChevronRight, HeartHandshake, LogOut, X } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -16,34 +16,56 @@ import {
 import Animated from "react-native-reanimated";
 import { M } from "@/lib/motion";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MyGames } from "@/components/profile/my-games";
+import { PhotoManager } from "@/components/profile/photo-manager";
 import { Avatar } from "@/components/ui/avatar";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { isAdminEmail } from "@/lib/admin";
 import { useAuth } from "@/lib/auth";
 import { T, eyebrow } from "@/lib/theme";
 
 const BUBBLE_MAX = 80;
 
+/** Loose input → clean "@handle" (mirrors the website quiz's normaliser). */
+function normalizeTelegram(raw: string): string | null {
+  const h = raw
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, "")
+    .replace(/\/+$/, "")
+    .replace(/^@+/, "")
+    .replace(/\s+/g, "");
+  return h ? `@${h}` : null;
+}
+
 /**
- * Profile modal — where you set your "bubble": the one-liner about your day
- * that floats on your card in other people's home rails.
+ * Profile modal — your photo wall (order = what matches see), your bubble,
+ * your telegram (links your website quiz answers for pairing), and the
+ * minigames you host for your matches.
  */
 export default function Profile() {
-  const { session, profile, updateStatusBubble, signOut } = useAuth();
+  const { session, profile, updateProfile, signOut } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [bubble, setBubble] = useState(profile?.status_bubble ?? "");
+  const [telegram, setTelegram] = useState(profile?.telegram ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   if (!session) return <Redirect href="/sign-in" />;
 
-  const dirty = bubble.trim() !== (profile?.status_bubble ?? "");
+  const admin = isAdminEmail(session.user.email);
+  const dirty =
+    bubble.trim() !== (profile?.status_bubble ?? "") ||
+    (normalizeTelegram(telegram) ?? "") !== (profile?.telegram ?? "");
 
   const save = async () => {
     setSaving(true);
     try {
-      await updateStatusBubble(bubble.trim());
+      await updateProfile({
+        status_bubble: bubble.trim(),
+        telegram: normalizeTelegram(telegram),
+      });
       setSaved(true);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
         () => {}
@@ -91,7 +113,7 @@ export default function Profile() {
         {/* identity */}
         <Animated.View entering={M.fadeDown()} style={styles.identity}>
           <Avatar
-            uri={profile?.avatar_url}
+            uri={profile?.photos?.[0] ?? profile?.avatar_url}
             name={profile?.display_name ?? "P2"}
             size={92}
           />
@@ -104,9 +126,25 @@ export default function Profile() {
           </View>
         </Animated.View>
 
-        {/* bubble editor */}
-        <Animated.View entering={M.fadeDown(50)} style={styles.section}>
-          <Text style={styles.sectionLabel}>Your bubble</Text>
+        {/* photo wall */}
+        <Animated.View entering={M.fadeDown(40)} style={styles.section}>
+          <Text style={styles.sectionLabel}>Your photos</Text>
+          <Text style={styles.sectionHint}>
+            Up to six — the first one is your main photo, and this exact order
+            is what your matches see.
+          </Text>
+          <View style={{ marginTop: 16 }}>
+            <PhotoManager
+              photos={profile?.photos ?? []}
+              userId={session.user.id}
+              onChange={(next) => updateProfile({ photos: next })}
+            />
+          </View>
+        </Animated.View>
+
+        {/* bubble + telegram */}
+        <Animated.View entering={M.fadeDown(80)} style={styles.section}>
+          <Text style={styles.sectionLabel}>About you</Text>
           <Text style={styles.sectionHint}>
             A line about your day — it floats on your card for people browsing
             their matches.
@@ -134,6 +172,25 @@ export default function Profile() {
             </Text>
           </View>
 
+          <Text style={[styles.sectionHint, { marginTop: 16 }]}>
+            Telegram — the same handle you used on the application quiz, so we
+            can link your answers.
+          </Text>
+          <View style={styles.tgWrap}>
+            <Text style={styles.tgAt}>@</Text>
+            <TextInput
+              style={styles.tgInput}
+              value={telegram.replace(/^@/, "")}
+              onChangeText={setTelegram}
+              placeholder="username"
+              placeholderTextColor={T.forestA(0.3)}
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              maxLength={32}
+            />
+          </View>
+
           <PressableScale
             style={[styles.saveBtn, (!dirty || saving) && !saved && styles.saveDisabled]}
             onPress={!dirty || saving ? undefined : () => void save()}
@@ -146,13 +203,47 @@ export default function Profile() {
                 <Text style={styles.saveText}>Saved</Text>
               </>
             ) : (
-              <Text style={styles.saveText}>Save bubble</Text>
+              <Text style={styles.saveText}>Save changes</Text>
             )}
           </PressableScale>
         </Animated.View>
 
+        {/* minigames */}
+        <Animated.View entering={M.fadeDown(120)} style={styles.section}>
+          <Text style={styles.sectionLabel}>Your games</Text>
+          <Text style={styles.sectionHint}>
+            Little ice-breakers your matches can play from your chat — set your
+            answers once, see how well they read you.
+          </Text>
+          <View style={{ marginTop: 14 }}>
+            <MyGames userId={session.user.id} />
+          </View>
+        </Animated.View>
+
+        {/* admin */}
+        {admin && (
+          <Animated.View entering={M.fadeDown(150)} style={styles.section}>
+            <PressableScale
+              to={0.98}
+              onPress={() => router.push("/admin")}
+              style={styles.adminBtn}
+            >
+              <View style={styles.adminIcon}>
+                <HeartHandshake size={17} color={T.colors.white} strokeWidth={1.9} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.adminTitle}>Matchmaker</Text>
+                <Text style={styles.adminSub}>
+                  Review members & quiz answers · pair people up
+                </Text>
+              </View>
+              <ChevronRight size={17} color={T.whiteA(0.75)} strokeWidth={2.2} />
+            </PressableScale>
+          </Animated.View>
+        )}
+
         {/* sign out */}
-        <Animated.View entering={M.fadeDown(100)} style={styles.section}>
+        <Animated.View entering={M.fadeDown(180)} style={styles.section}>
           <PressableScale style={styles.signOut} onPress={confirmSignOut}>
             <LogOut size={16} color={T.colors.terracotta} strokeWidth={2} />
             <Text style={styles.signOutText}>Sign out</Text>
@@ -294,6 +385,29 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: T.forestA(0.35),
   },
+  tgWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 10,
+    height: 50,
+    backgroundColor: T.colors.card,
+    borderWidth: 1,
+    borderColor: T.colors.stone,
+    borderRadius: T.radii.md,
+    paddingHorizontal: 14,
+  },
+  tgAt: {
+    fontFamily: T.fonts.sansSemiBold,
+    fontSize: 15,
+    color: T.forestA(0.55),
+  },
+  tgInput: {
+    flex: 1,
+    fontFamily: T.fonts.sans,
+    fontSize: 15,
+    color: T.colors.forest,
+  },
   saveBtn: {
     flexDirection: "row",
     gap: 8,
@@ -311,6 +425,35 @@ const styles = StyleSheet.create({
     fontFamily: T.fonts.sansSemiBold,
     fontSize: 15,
     color: T.colors.white,
+  },
+  adminBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: T.colors.forest,
+    borderRadius: T.radii.lg,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
+    ...T.shadow.medium,
+  },
+  adminIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: T.whiteA(0.14),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  adminTitle: {
+    fontFamily: T.fonts.serif,
+    fontSize: 17,
+    color: T.colors.white,
+  },
+  adminSub: {
+    marginTop: 1,
+    fontFamily: T.fonts.sans,
+    fontSize: 12,
+    color: T.whiteA(0.65),
   },
   signOut: {
     flexDirection: "row",

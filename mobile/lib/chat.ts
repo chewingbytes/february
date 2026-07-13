@@ -342,6 +342,7 @@ export function useChatRoom(matchId: string, myId: string) {
         content: text,
         kind: "text",
         event_id: null,
+        meta: null,
         created_at: new Date().toISOString(),
         read_at: null,
         pending: true,

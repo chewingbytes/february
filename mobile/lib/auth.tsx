@@ -66,6 +66,11 @@ async function createSessionFromUrl(url: string) {
   throw new Error("No credentials found in the sign-in redirect.");
 }
 
+/** The profile fields the user can edit from the app. */
+export type ProfilePatch = Partial<
+  Pick<Profile, "status_bubble" | "photos" | "telegram" | "display_name">
+>;
+
 type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
@@ -75,6 +80,7 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateStatusBubble: (text: string) => Promise<void>;
+  updateProfile: (patch: ProfilePatch) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -189,12 +195,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data) setProfile(data as Profile);
   }, [session]);
 
-  const updateStatusBubble = useCallback(
-    async (text: string) => {
+  const updateProfile = useCallback(
+    async (patch: ProfilePatch) => {
       if (!session) return;
       const { data, error } = await supabase
         .from(TABLES.profiles)
-        .update({ status_bubble: text })
+        .update(patch)
         .eq("id", session.user.id)
         .select()
         .single();
@@ -202,6 +208,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(data as Profile);
     },
     [session]
+  );
+
+  const updateStatusBubble = useCallback(
+    (text: string) => updateProfile({ status_bubble: text }),
+    [updateProfile]
   );
 
   return (
@@ -214,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut,
         refreshProfile,
         updateStatusBubble,
+        updateProfile,
       }}
     >
       {children}

@@ -54,6 +54,19 @@ export default function RootLayout() {
             name="profile"
             options={{ presentation: "modal", animation: "slide_from_bottom" }}
           />
+          <Stack.Screen
+            name="person/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen name="admin" options={{ animation: "slide_from_right" }} />
+          <Stack.Screen
+            name="games/create"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="games/[matchId]"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>

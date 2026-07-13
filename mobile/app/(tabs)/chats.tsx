@@ -74,7 +74,7 @@ export default function Chats() {
               onPress={() => router.push(`/chat/${item.match.id}`)}
             >
               <Avatar
-                uri={item.match.partner.avatar_url}
+                uri={item.match.partner.photos?.[0] ?? item.match.partner.avatar_url}
                 name={item.match.partner.display_name}
                 size={54}
                 online={online.has(item.match.partner.id)}

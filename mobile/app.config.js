@@ -28,5 +28,12 @@ export default ({ config }) => ({
         androidGoogleMapsApiKey,
       },
     ],
+    [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "Player 2 uses your photo library so you can add photos to your profile.",
+      },
+    ],
   ],
 });

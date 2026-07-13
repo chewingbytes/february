@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -27,10 +28,15 @@ export function PersonCard({
   const lg = size === "lg";
   const width = lg ? 182 : 152;
   const height = lg ? 250 : 208;
+  const router = useRouter();
 
   return (
     <Animated.View entering={M.fadeDown(50 + index * 40)}>
-      <PressableScale to={0.965} style={{ width }}>
+      <PressableScale
+        to={0.965}
+        style={{ width }}
+        onPress={() => router.push(`/person/${person.id}`)}
+      >
         <View
           style={[
             styles.photoWrap,

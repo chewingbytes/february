@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { ArrowUp, ChevronLeft, Sparkles } from "lucide-react-native";
+import { ArrowUp, ChevronLeft, Dices, Sparkles } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -114,30 +114,52 @@ export default function ChatRoom() {
         </PressableScale>
         {match ? (
           <>
-            <Avatar
-              uri={match.partner.avatar_url}
-              name={match.partner.display_name}
-              size={40}
-              online={partnerOnline}
-            />
-            <View style={styles.headerBody}>
-              <Text style={styles.headerName} numberOfLines={1}>
-                {match.partner.display_name}
-              </Text>
-              <Text
-                style={[
-                  styles.headerSub,
-                  (partnerOnline || partnerTyping) && { color: T.colors.sage },
-                ]}
-                numberOfLines={1}
-              >
-                {subtitle}
-              </Text>
-            </View>
+            {/* tap the person → their profile (photo wall) */}
+            <PressableScale
+              to={0.97}
+              haptic={false}
+              onPress={() => router.push(`/person/${match.partner.id}`)}
+              style={styles.headerPerson}
+            >
+              <Avatar
+                uri={match.partner.photos?.[0] ?? match.partner.avatar_url}
+                name={match.partner.display_name}
+                size={40}
+                online={partnerOnline}
+              />
+              <View style={styles.headerBody}>
+                <Text style={styles.headerName} numberOfLines={1}>
+                  {match.partner.display_name}
+                </Text>
+                <Text
+                  style={[
+                    styles.headerSub,
+                    (partnerOnline || partnerTyping) && { color: T.colors.sage },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {subtitle}
+                </Text>
+              </View>
+            </PressableScale>
             <View style={styles.compatPill}>
               <Sparkles size={12} color={T.colors.terracotta} strokeWidth={2.2} />
               <Text style={styles.compatText}>{match.compatibility}%</Text>
             </View>
+            {/* minigames for this chat */}
+            <PressableScale
+              to={0.88}
+              onPress={() =>
+                router.push(
+                  `/games/${id}?partner=${match.partner.id}&name=${encodeURIComponent(
+                    match.partner.display_name.split(" ")[0]
+                  )}`
+                )
+              }
+              style={styles.gamesBtn}
+            >
+              <Dices size={18} color={T.colors.white} strokeWidth={2} />
+            </PressableScale>
           </>
         ) : (
           <View style={styles.headerBody} />
@@ -228,6 +250,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  headerPerson: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
   headerBody: { flex: 1 },
   headerName: {
     fontFamily: T.fonts.serif,
@@ -253,6 +281,15 @@ const styles = StyleSheet.create({
     fontFamily: T.fonts.sansBold,
     fontSize: 12,
     color: T.colors.terracotta,
+  },
+  gamesBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: T.colors.sage,
+    alignItems: "center",
+    justifyContent: "center",
+    ...T.shadow.soft,
   },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
   thread: {

@@ -9,6 +9,8 @@ import {
   Check,
   CalendarClock,
   Loader2,
+  Minus,
+  Plus,
   Sparkles,
 } from "lucide-react";
 
@@ -35,6 +37,7 @@ type Question = {
 } & (
   | { kind: "choice"; options: Choice[] }
   | { kind: "match"; options: MatchOption[] }
+  | { kind: "age_pref" }
   | { kind: "number" | "text" | "telegram"; placeholder: string }
 );
 
@@ -168,6 +171,13 @@ const QUESTIONS: Question[] = [
     placeholder: "Your age",
   },
   {
+    id: "age_pref",
+    part: "Logistics",
+    kind: "age_pref",
+    q: "Open to an age gap?",
+    help: "We pair within a few years by default — tell us how far you'd stretch, in either direction.",
+  },
+  {
     id: "gender_pref",
     part: "Logistics",
     kind: "choice",
@@ -292,6 +302,14 @@ export default function QuestionnaireForm() {
   const [matchAnswers, setMatchAnswers] = useState<
     Record<string, { self?: string; accept: string[]; weight?: Importance }>
   >({});
+  // Age-gap preference: whether they'd date younger/older and, for each
+  // direction they'd accept, how many years they'd stretch.
+  const [agePref, setAgePref] = useState<{
+    younger: boolean;
+    older: boolean;
+    maxYounger: number;
+    maxOlder: number;
+  }>({ younger: false, older: false, maxYounger: 5, maxOlder: 5 });
   const casualSaved = useRef(false);
 
   const question = QUESTIONS[step];
@@ -364,6 +382,10 @@ export default function QuestionnaireForm() {
       energy_level: answers.energy_level ?? null,
       competitiveness: answers.competitiveness ?? null,
       dealbreaker: answers.dealbreaker?.trim() || null,
+      accepts_younger: agePref.younger,
+      accepts_older: agePref.older,
+      max_years_younger: agePref.younger ? agePref.maxYounger : null,
+      max_years_older: agePref.older ? agePref.maxOlder : null,
       telegram: normalizeHandle(answers.telegram),
       match_answers: Object.keys(matches).length ? matches : null,
     };
@@ -612,6 +634,106 @@ export default function QuestionnaireForm() {
                 })}
               </div>
             </div>
+          </div>
+        ) : question.kind === "age_pref" ? (
+          <div className="space-y-4">
+            {(
+              [
+                {
+                  key: "younger",
+                  maxKey: "maxYounger",
+                  label: "Someone younger than me",
+                  dir: "younger",
+                },
+                {
+                  key: "older",
+                  maxKey: "maxOlder",
+                  label: "Someone older than me",
+                  dir: "older",
+                },
+              ] as const
+            ).map((opt) => {
+              const on = agePref[opt.key];
+              const maxVal = agePref[opt.maxKey];
+              return (
+                <div
+                  key={opt.key}
+                  className={`overflow-hidden rounded-2xl border transition-all duration-200 ease-botanical ${
+                    on
+                      ? "border-sage bg-sage/10 ring-1 ring-sage"
+                      : "border-stone bg-card-clay hover:border-sage/60"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAgePref((p) => ({ ...p, [opt.key]: !p[opt.key] }))
+                    }
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
+                  >
+                    <span
+                      className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border transition-colors ${
+                        on
+                          ? "border-sage bg-sage text-background"
+                          : "border-stone text-transparent"
+                      }`}
+                    >
+                      <Check strokeWidth={3} className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-[15px] font-medium text-forest">
+                      {opt.label}
+                    </span>
+                  </button>
+
+                  {on && (
+                    <div className="flex items-center justify-between gap-3 border-t border-sage/25 px-4 py-3">
+                      <span className="text-[13.5px] text-forest/70">
+                        Up to{" "}
+                        <span className="font-semibold text-forest">{maxVal}</span>{" "}
+                        {maxVal === 1 ? "year" : "years"} {opt.dir}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          aria-label={`Fewer years ${opt.dir}`}
+                          disabled={maxVal <= 1}
+                          onClick={() =>
+                            setAgePref((p) => ({
+                              ...p,
+                              [opt.maxKey]: Math.max(1, p[opt.maxKey] - 1),
+                            }))
+                          }
+                          className="grid h-9 w-9 place-items-center rounded-full border border-stone bg-background text-forest transition-colors hover:border-forest/40 disabled:opacity-40"
+                        >
+                          <Minus strokeWidth={2.5} className="h-4 w-4" />
+                        </button>
+                        <span className="w-6 text-center text-[15px] font-semibold text-forest">
+                          {maxVal}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`More years ${opt.dir}`}
+                          disabled={maxVal >= 20}
+                          onClick={() =>
+                            setAgePref((p) => ({
+                              ...p,
+                              [opt.maxKey]: Math.min(20, p[opt.maxKey] + 1),
+                            }))
+                          }
+                          className="grid h-9 w-9 place-items-center rounded-full border border-stone bg-background text-forest transition-colors hover:border-forest/40 disabled:opacity-40"
+                        >
+                          <Plus strokeWidth={2.5} className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <p className="text-[13px] leading-relaxed text-forest/45">
+              Leave both off if you&rsquo;d rather only meet people right around
+              your own age.
+            </p>
           </div>
         ) : (
           <form
